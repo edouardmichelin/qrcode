@@ -2,8 +2,7 @@ package qrcode;
 
 public class Main {
 
-	public static final String INPUT =  "Write you message here. Accents are permitted, but not all characters. See the norm ISO/CEI 8859-1 on wikipedia for more info";
-
+	public static final String INPUT = "Bonne journée!";
 	/*
 	 * Parameters
 	 */
@@ -12,21 +11,23 @@ public class Main {
 	public static final int SCALING = 20;
 
 	public static void main(String[] args) {
-
+		for (boolean b : DataEncoding.bytesToBinaryArray(DataEncoding.encodeString(INPUT, 17))) {
+			System.out.print(b ? "1" : "0");
+		}
 		/*
 		 * Encoding
 		 */
-		boolean[] encodedData = DataEncoding.byteModeEncoding(INPUT, VERSION);
+		// boolean[] encodedData = DataEncoding.byteModeEncoding(INPUT, VERSION);
 		
 		/*
 		 * image
 		 */
-		int[][] qrCode = MatrixConstruction.renderQRCodeMatrix(VERSION, encodedData,MASK);
+		// int[][] qrCode = MatrixConstruction.renderQRCodeMatrix(VERSION, encodedData,MASK);
 
 		/*
 		 * Visualization
 		 */
-		Helpers.show(qrCode, SCALING);
+		// Helpers.show(qrCode, SCALING);
 	}
 
 }

@@ -1,5 +1,7 @@
 package qrcode;
 
+import java.awt.*;
+
 public class MatrixConstruction {
 
 	/*
@@ -13,6 +15,11 @@ public class MatrixConstruction {
 	 */
 	// TODO add constant for White pixel
 	// TODO add constant for Black pixel
+
+	private static final int W = new Color(255, 255, 255, 255).getRGB();
+	private static final int B = new Color(255, 0, 0, 0).getRGB();
+
+	private final int[] maximumLengthForVersion = new int[] {17, 32, 53, 78};
 	
 
 	// ...  MYDEBUGCOLOR = ...;

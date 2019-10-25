@@ -1,10 +1,15 @@
 package qrcode;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 import reedsolomon.ErrorCorrectionEncoding;
 
 public final class DataEncoding {
+
+	private static final Charset CHARSET = StandardCharsets.ISO_8859_1;
+	private static final int BYTE_LENGTH = 8;
 
 	/**
 	 * @param input
@@ -25,9 +30,15 @@ public final class DataEncoding {
 	 *         truncated to fit the version capacity
 	 */
 	public static int[] encodeString(String input, int maxLength) {
-		// TODO Implementer
+		byte[] encodedString = input.getBytes(CHARSET);
+		int fixedInputLength = encodedString.length > maxLength ? maxLength : encodedString.length;
+		int[] sequence = new int[encodedString.length];
 
-		return null;
+		for (int index = 0; index < encodedString.length; index++ ) {
+			sequence[index] = (encodedString[index] & 0xFF);
+		}
+
+		return sequence;
 	}
 
 	/**
@@ -81,8 +92,18 @@ public final class DataEncoding {
 	 * @return a boolean array representing the data in binary
 	 */
 	public static boolean[] bytesToBinaryArray(int[] data) {
-		// TODO Implementer
-		return null;
+		int index = 0;
+		boolean[] result = new boolean[data.length * BYTE_LENGTH];
+
+		for (int _byte : data) {
+			String[] binaryString = Integer.toBinaryString(_byte).replace(' ', '0').split("");
+			for (String b : binaryString) {
+				result[index] = b.equals("1");
+				index++;
+			}
+		}
+
+		return result;
 	}
 
 }
