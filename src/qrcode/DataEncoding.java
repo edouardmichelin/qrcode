@@ -30,6 +30,14 @@ public final class DataEncoding {
 		return DataEncoding.bytesToBinaryArray(DataEncoding.encodeString(input, QRCodeInfos.getMaxInputLength((version))));
 	}
 
+	public static int[] decimalToBinary(int[] inputArray){
+		int[] outputArray = new int[inputArray.length];
+		for(int i = 0; i < inputArray.length; i++){
+
+		}
+		return outputArray;
+	}
+
 	/**
 	 * @param input
 	 *            The string to convert to ISO-8859-1
@@ -104,8 +112,15 @@ public final class DataEncoding {
 	 * @return the original data concatenated with the error correction
 	 */
 	public static int[] addErrorCorrection(int[] encodedData, int eccLength) {
-		// TODO Implementer
-		return null;
+		int[] correctionBytes = ErrorCorrectionEncoding.encode(encodedData, eccLength);
+		int[] output = new int[encodedData.length + eccLength];
+		for(int i = 0; i < encodedData.length; i++){
+			output[i] = encodedData[i];
+		}
+		for(int i = encodedData.length; i-encodedData.length < eccLength; i++){
+			output[i] = encodedData[i-eccLength];
+		}
+		return output;
 	}
 
 	/**
