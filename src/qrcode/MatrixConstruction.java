@@ -16,10 +16,10 @@ public class MatrixConstruction {
 	// TODO add constant for White pixel
 	// TODO add constant for Black pixel
 
-	private static final int W = new Color(255, 255, 255, 255).getRGB();
-	private static final int B = new Color(255, 0, 0, 0).getRGB();
+	private static final int W = 0xFF_FF_FF_FF; // new Color(255, 255, 255, 255).getRGB();
+	private static final int B = 0xFF_00_00_00; // new Color(255, 0, 0, 0).getRGB();
 
-	private final int[] maximumLengthForVersion = new int[] {17, 32, 53, 78};
+	// private final int[] maximumLengthForVersion = new int[] {17, 32, 53, 78};
 	
 
 	// ...  MYDEBUGCOLOR = ...;
@@ -74,7 +74,11 @@ public class MatrixConstruction {
 	 */
 	public static int[][] constructMatrix(int version, int mask) {
 		// TODO Implementer
-		return null;
+		int[][] matrix = initializeMatrix(version);
+
+		addFinderPatterns(matrix);
+
+		return matrix;
 
 	}
 
@@ -88,8 +92,8 @@ public class MatrixConstruction {
 	 * @return an empty matrix
 	 */
 	public static int[][] initializeMatrix(int version) {
-		// TODO Implementer
-		return null;
+		int matrixSize = QRCodeInfos.getMatrixSize(version);
+		return new int[matrixSize][matrixSize];
 	}
 
 	/**
@@ -165,8 +169,26 @@ public class MatrixConstruction {
 	 * @return the color with the masking
 	 */
 	public static int maskColor(int col, int row, boolean dataBit, int masking) {
-		// TODO Implementer
-		return 0;
+		boolean isMasked = false;
+		switch (masking) {
+			case 0: isMasked = (col + row) % 2 == 0;
+				break;
+			case 1: isMasked = row % 2 == 0;
+				break;
+			case 2: isMasked = col % 3 == 0;
+				break;
+			case 3: isMasked = (col + row) % 3 == 0;
+				break;
+			case 4: isMasked = (Math.floor(col / 3) + Math.floor(row / 2)) % 2 == 0;
+				break;
+			case 5: isMasked = ((col * row) % 2 + (col * row) % 3) == 0;
+				break;
+			case 6:
+			case 7: isMasked = ((col * row) % 2 + (col * row) % 3) % 2 == 0;
+				break;
+		}
+
+		return dataBit && !isMasked || !dataBit && isMasked ? B : W;
 	}
 
 	/**
