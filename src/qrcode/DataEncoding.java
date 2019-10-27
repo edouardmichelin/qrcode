@@ -74,8 +74,24 @@ public final class DataEncoding {
 	 *         bytes 236,17
 	 */
 	public static int[] fillSequence(int[] encodedData, int finalLength) {
-		// TODO Implementer
-		return null;
+		int[] paddedSequence = new int[finalLength];
+		if(encodedData.length >= finalLength){
+			return encodedData;
+		}else{
+
+			for(int i = 0; i < encodedData.length; i++){
+				paddedSequence[i] = encodedData[i];
+			}
+
+			for(int i = encodedData.length; i < finalLength; i++){
+				if((paddedSequence[i-1] != 236)){
+					paddedSequence[i] = 236;
+				}else{
+					paddedSequence[i] = 17;
+				}
+			}
+			return paddedSequence;
+		}
 	}
 
 	/**
