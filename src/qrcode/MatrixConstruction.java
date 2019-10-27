@@ -1,6 +1,8 @@
 package qrcode;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MatrixConstruction {
 
@@ -103,7 +105,47 @@ public class MatrixConstruction {
 	 *            the 2D array to modify: where to add the patterns
 	 */
 	public static void addFinderPatterns(int[][] matrix) {
-		// TODO Implementer
+		int finderPatternSize = 8;
+		int matrixSize = matrix.length;
+
+		for (int row = 0; row < matrixSize; row++) {
+			for (int col = 0; col < matrixSize; col++) {
+				if (row < finderPatternSize || row > matrixSize - (finderPatternSize + 1)) {
+					if (
+							(col < finderPatternSize || col  > matrixSize - (finderPatternSize + 1)) &&
+							(row < finderPatternSize || col < finderPatternSize)
+					) {
+						if ((row == (finderPatternSize - 1) ||col == (finderPatternSize - 1)) ||
+								((row == (matrixSize - (finderPatternSize))) ||
+										(col == (matrixSize - (finderPatternSize))))
+						) {
+							matrix[col][row] = W;
+						} else {
+							matrix[col][row] = B;
+							if (
+									(row > 0 &&
+									row < finderPatternSize - 2 ) ||
+									(row < matrixSize - 1 &&
+									row > matrixSize - finderPatternSize + 1)
+							) {
+								if (
+									(col > 0 && col < finderPatternSize - 2) ||
+									(col > matrixSize - finderPatternSize + 1) && col < matrixSize - 1) {
+									matrix[col][row] = W;
+									if ((col > 1 && col < finderPatternSize - 3) ||
+											(col > matrixSize - finderPatternSize + 2 && col < matrixSize - 2)) {
+										if ((row > 1 && row < finderPatternSize - 3) ||
+												(row > matrixSize - finderPatternSize + 2 && row < matrixSize - 2)) {
+											matrix[col][row] = B;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
