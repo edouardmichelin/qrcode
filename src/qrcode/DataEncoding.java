@@ -2,7 +2,6 @@ package qrcode;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 import reedsolomon.ErrorCorrectionEncoding;
 
@@ -11,14 +10,24 @@ public final class DataEncoding {
 	private static final Charset CHARSET = StandardCharsets.ISO_8859_1;
 	private static final int BYTE_LENGTH = 8;
 
+	private static String padLeft(String input, int length) {
+		if (input.length() == length) return input;
+
+		StringBuilder sb = new StringBuilder();
+		while (sb.length() < length - input.length()) {
+			sb.append("0");
+		}
+
+		return sb.append(input).toString();
+	}
+
 	/**
-	 * @param input
-	 * @param version
-	 * @return
+	 * @param input The String to convert
+	 * @param version The version of the QRCode
+	 * @return The binary string of the encoded input
 	 */
 	public static boolean[] byteModeEncoding(String input, int version) {
-		// TODO Implementer
-		return null;
+		return DataEncoding.bytesToBinaryArray(DataEncoding.encodeString(input, QRCodeInfos.getMaxInputLength((version))));
 	}
 
 	/**
@@ -32,10 +41,10 @@ public final class DataEncoding {
 	public static int[] encodeString(String input, int maxLength) {
 		byte[] encodedString = input.getBytes(CHARSET);
 		int fixedInputLength = encodedString.length > maxLength ? maxLength : encodedString.length;
-		int[] sequence = new int[encodedString.length];
+		int[] sequence = new int[fixedInputLength];
 
-		for (int index = 0; index < encodedString.length; index++ ) {
-			sequence[index] = (encodedString[index] & 0xFF);
+		for (int index = 0; index < fixedInputLength; index++ ) {
+			sequence[index] = Byte.toUnsignedInt(encodedString[index]);
 		}
 
 		return sequence;
@@ -92,13 +101,12 @@ public final class DataEncoding {
 	 * @return a boolean array representing the data in binary
 	 */
 	public static boolean[] bytesToBinaryArray(int[] data) {
-		int index = 0;
 		boolean[] result = new boolean[data.length * BYTE_LENGTH];
+		int index = 0;
 
 		for (int _byte : data) {
-			String[] binaryString = Integer.toBinaryString(_byte).replace(' ', '0').split("");
-			for (String b : binaryString) {
-				result[index] = b.equals("1");
+			for (String bit : padLeft(Integer.toBinaryString(_byte), BYTE_LENGTH).split("")) {
+				result[index] = bit.equals("1");
 				index++;
 			}
 		}

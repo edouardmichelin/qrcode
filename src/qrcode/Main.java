@@ -2,7 +2,7 @@ package qrcode;
 
 public class Main {
 
-	public static final String INPUT = "Bonne journée!";
+	public static final String INPUT = "Bonne journée";
 	/*
 	 * Parameters
 	 */
@@ -11,13 +11,14 @@ public class Main {
 	public static final int SCALING = 20;
 
 	public static void main(String[] args) {
-		for (boolean b : DataEncoding.bytesToBinaryArray(DataEncoding.encodeString(INPUT, 17))) {
-			System.out.print(b ? "1" : "0");
-		}
 		/*
 		 * Encoding
 		 */
-		// boolean[] encodedData = DataEncoding.byteModeEncoding(INPUT, VERSION);
+		boolean[] encodedData = DataEncoding.byteModeEncoding(INPUT, VERSION);
+
+		for (boolean b : encodedData) {
+			System.out.print(b ? "1" : "0");
+		}
 		
 		/*
 		 * image
