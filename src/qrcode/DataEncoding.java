@@ -58,8 +58,20 @@ public final class DataEncoding {
 	 * @return The input bytes with an header giving the type and size of the data
 	 */
 	public static int[] addInformations(int[] inputBytes) {
-		// TODO Implementer
-		return null;
+		int length = inputBytes.length;
+		int[] outputBytes = new int[length + 2];
+		for(int i = 0; i < outputBytes.length; i++){
+			if(i == 0){
+				outputBytes[i] = (64 & 240)|((length & 240)>>4);
+			}else if(i == 1){
+				outputBytes[i] = ((length & 15)<<4)|((inputBytes[i-1] & 240)>>4);
+			}else if(i == outputBytes.length - 1){
+				outputBytes[i] = ((inputBytes[i-2] & 15)<<4)|((0 & 240)>>4);
+			}else{
+				outputBytes[i] = ((inputBytes[i-2] & 15)<<4)|((inputBytes[i-1] & 240)>>4);
+			}
+		}
+		return outputBytes;
 	}
 
 	/**
