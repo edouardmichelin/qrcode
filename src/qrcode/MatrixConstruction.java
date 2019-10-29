@@ -162,7 +162,23 @@ public class MatrixConstruction {
 	 */
 	public static void addAlignmentPatterns(int[][] matrix, int version) {
 		if (!(version > 1)) return;
-		
+		int alignmentPatternSize = 5;
+		int offsetEnd = matrixSize - 4;
+		int offsetBeg = offsetEnd - alignmentPatternSize;
+		int midPos = (offsetBeg + offsetEnd) / 2;
+
+		for (int row = offsetBeg; row < offsetEnd; row++) {
+			for (int col = offsetBeg; col < offsetEnd; col++) {
+				if ((col == offsetBeg || col == offsetEnd - 1) || (row == offsetBeg || row == offsetEnd - 1)) {
+					matrix[col][row] = B;
+					matrix[row][col] = B;
+				} else if (row == midPos && row == col) {
+					matrix[row][row] = B;
+				} else {
+					matrix[row][col] = W;
+				}
+			}
+		}
 	}
 
 	/**
@@ -173,11 +189,13 @@ public class MatrixConstruction {
 	 */
 	public static void addTimingPatterns(int[][] matrix) {
 		int bit = 0;
-		int alignmentPatternPosition = 6;
+		int timingPatternPosition = 6;
+
 		for (int index = 0; index < matrixSize; index++) {
 			if (index > finderPatternSize - 1 && index < matrixSize - finderPatternSize) {
-				matrix[index][alignmentPatternPosition] = bit == 0 ? B : W;
-				matrix[alignmentPatternPosition][index] = bit == 0 ? B : W;
+				int color = bit == 0 ? B : W;
+				matrix[index][timingPatternPosition] = color;
+				matrix[timingPatternPosition][index] = color;
 				bit = (bit + 1) % 2;
 			}
 		}
