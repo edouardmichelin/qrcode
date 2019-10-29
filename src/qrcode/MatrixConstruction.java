@@ -21,6 +21,9 @@ public class MatrixConstruction {
 	private static final int W = 0xFF_FF_FF_FF; // new Color(255, 255, 255, 255).getRGB();
 	private static final int B = 0xFF_00_00_00; // new Color(255, 0, 0, 0).getRGB();
 
+	private static int matrixSize = 0;
+	private static int finderPatternSize = 8;
+
 	// private final int[] maximumLengthForVersion = new int[] {17, 32, 53, 78};
 	
 
@@ -79,6 +82,7 @@ public class MatrixConstruction {
 		int[][] matrix = initializeMatrix(version);
 
 		addFinderPatterns(matrix);
+		addAlignmentPatterns(matrix, version);
 
 		return matrix;
 
@@ -94,7 +98,7 @@ public class MatrixConstruction {
 	 * @return an empty matrix
 	 */
 	public static int[][] initializeMatrix(int version) {
-		int matrixSize = QRCodeInfos.getMatrixSize(version);
+		matrixSize = QRCodeInfos.getMatrixSize(version);
 		return new int[matrixSize][matrixSize];
 	}
 
@@ -105,9 +109,6 @@ public class MatrixConstruction {
 	 *            the 2D array to modify: where to add the patterns
 	 */
 	public static void addFinderPatterns(int[][] matrix) {
-		int finderPatternSize = 8;
-		int matrixSize = matrix.length;
-
 		for (int row = 0; row < matrixSize; row++) {
 			for (int col = 0; col < matrixSize; col++) {
 				if (row < finderPatternSize || row > matrixSize - (finderPatternSize + 1)) {
@@ -115,7 +116,7 @@ public class MatrixConstruction {
 							(col < finderPatternSize || col  > matrixSize - (finderPatternSize + 1)) &&
 							(row < finderPatternSize || col < finderPatternSize)
 					) {
-						if ((row == (finderPatternSize - 1) ||col == (finderPatternSize - 1)) ||
+						if ((row == (finderPatternSize - 1) || col == (finderPatternSize - 1)) ||
 								((row == (matrixSize - (finderPatternSize))) ||
 										(col == (matrixSize - (finderPatternSize))))
 						) {
@@ -158,7 +159,15 @@ public class MatrixConstruction {
 	 *            included
 	 */
 	public static void addAlignmentPatterns(int[][] matrix, int version) {
-		// TODO Implementer
+		int bit = 0;
+		int alignmentPatternPosition = 6;
+		for (int index = 0; index < matrixSize; index++) {
+			if (index > finderPatternSize - 1 && index < matrixSize - finderPatternSize) {
+				matrix[index][alignmentPatternPosition] = bit == 0 ? B : W;
+				matrix[alignmentPatternPosition][index] = bit == 0 ? B : W;
+				bit = (bit + 1) % 2;
+			}
+		}
 	}
 
 	/**
