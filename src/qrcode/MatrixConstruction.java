@@ -82,7 +82,9 @@ public class MatrixConstruction {
 		int[][] matrix = initializeMatrix(version);
 
 		addFinderPatterns(matrix);
+		addTimingPatterns(matrix);
 		addAlignmentPatterns(matrix, version);
+		addDarkModule(matrix);
 
 		return matrix;
 
@@ -159,6 +161,17 @@ public class MatrixConstruction {
 	 *            included
 	 */
 	public static void addAlignmentPatterns(int[][] matrix, int version) {
+		if (!(version > 1)) return;
+		
+	}
+
+	/**
+	 * Add the timings patterns
+	 * 
+	 * @param matrix
+	 *            The 2D array to modify
+	 */
+	public static void addTimingPatterns(int[][] matrix) {
 		int bit = 0;
 		int alignmentPatternPosition = 6;
 		for (int index = 0; index < matrixSize; index++) {
@@ -171,23 +184,13 @@ public class MatrixConstruction {
 	}
 
 	/**
-	 * Add the timings patterns
-	 * 
-	 * @param matrix
-	 *            The 2D array to modify
-	 */
-	public static void addTimingPatterns(int[][] matrix) {
-		// TODO Implementer
-	}
-
-	/**
 	 * Add the dark module to the matrix
 	 * 
 	 * @param matrix
 	 *            the 2-dimensional array representing the QR code
 	 */
 	public static void addDarkModule(int[][] matrix) {
-		// TODO Implementer
+		matrix[finderPatternSize][matrixSize - finderPatternSize] = B;
 	}
 
 	/**
