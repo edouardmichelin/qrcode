@@ -10,7 +10,8 @@ public class MatrixConstruction {
 	private static final int B = 0xFF_00_00_00;
 
 	private static int matrixSize = 0;
-	private static int finderPatternSize = 7;
+	private static final int finderPatternSize = 7;
+	private static final int alignmentPatternSize = 5;
 
 	private static void addFinderPattern(int[][] matrix, int[] topLeftCornerIndex) {
 		int offsetXBeg = topLeftCornerIndex[0], offsetXEnd = offsetXBeg + finderPatternSize;
@@ -88,7 +89,6 @@ public class MatrixConstruction {
 	 *         initialized. The modules where the data should be remain empty.
 	 */
 	public static int[][] constructMatrix(int version, int mask) {
-		// TODO Implementer
 		int[][] matrix = initializeMatrix(version);
 
 		addFinderPatterns(matrix);
@@ -97,7 +97,6 @@ public class MatrixConstruction {
 		addDarkModule(matrix);
 
 		return matrix;
-
 	}
 
 	/**
@@ -137,10 +136,8 @@ public class MatrixConstruction {
 	 *            included
 	 */
 	public static void addAlignmentPatterns(int[][] matrix, int version) {
-		if (!(version > 1)) return;
-		int alignmentPatternSize = 5;
-		int offsetEnd = matrixSize - 4;
-		int offsetBeg = offsetEnd - alignmentPatternSize;
+		if (version < 2) return;
+		int offsetEnd = matrixSize - 4, offsetBeg = offsetEnd - alignmentPatternSize;
 		int midPos = (offsetBeg + offsetEnd) / 2;
 
 		for (int row = offsetBeg; row < offsetEnd; row++) {
@@ -185,7 +182,7 @@ public class MatrixConstruction {
 	 *            the 2-dimensional array representing the QR code
 	 */
 	public static void addDarkModule(int[][] matrix) {
-		matrix[finderPatternSize + 1][matrixSize - finderPatternSize] = B;
+		matrix[finderPatternSize + 1][matrixSize - finderPatternSize - 1] = B;
 	}
 
 	/**
