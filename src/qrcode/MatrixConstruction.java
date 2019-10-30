@@ -1,17 +1,14 @@
 package qrcode;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 public class MatrixConstruction {
 
 	private static final int W = 0xFF_FF_FF_FF;
 	private static final int B = 0xFF_00_00_00;
-
-	private static int matrixSize = 0;
 	private static final int finderPatternSize = 7;
 	private static final int alignmentPatternSize = 5;
+	private static final int timingPatternPosition = 6;
+
+	private static int matrixSize = 0;
 
 	private static void addFinderPattern(int[][] matrix, int[] topLeftCornerIndex) {
 		int offsetXBeg = topLeftCornerIndex[0], offsetXEnd = offsetXBeg + finderPatternSize;
@@ -95,6 +92,7 @@ public class MatrixConstruction {
 		addTimingPatterns(matrix);
 		addAlignmentPatterns(matrix, version);
 		addDarkModule(matrix);
+		addFormatInformation(matrix, mask);
 
 		return matrix;
 	}
@@ -162,7 +160,6 @@ public class MatrixConstruction {
 	 */
 	public static void addTimingPatterns(int[][] matrix) {
 		int bit = 0;
-		int timingPatternPosition = 6;
 		int offset = finderPatternSize + 1;
 
 		for (int index = 0; index < matrixSize; index++) {
@@ -194,7 +191,29 @@ public class MatrixConstruction {
 	 *            the mask id
 	 */
 	public static void addFormatInformation(int[][] matrix, int mask) {
-		// TODO Implementer
+		boolean[] maskInfo = QRCodeInfos.getFormatSequence(mask);
+
+		int index = 0;
+		for (int col = matrixSize - 1; col >= 0; col--) {
+			if (
+					col != timingPatternPosition &&
+					(col > (matrixSize - finderPatternSize - 1) || col < (finderPatternSize + 2))
+			) {
+				matrix[finderPatternSize + 1][col] = maskInfo[index] ? B : W;
+				index++;
+			}
+		}
+
+		index = 0;
+		for (int row = 0; row < matrixSize; row++) {
+			if (
+					row != timingPatternPosition &&
+					(row > (matrixSize - finderPatternSize - 2) || row < (finderPatternSize + 1))
+			) {
+				matrix[row][finderPatternSize + 1] = maskInfo[index] ? B : W;
+				index++;
+			}
+		}
 	}
 
 	/*
