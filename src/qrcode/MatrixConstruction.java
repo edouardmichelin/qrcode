@@ -6,29 +6,39 @@ import java.util.Arrays;
 
 public class MatrixConstruction {
 
-	/*
-	 * Constants defining the color in ARGB format
-	 * 
-	 * W = White integer for ARGB
-	 * 
-	 * B = Black integer for ARGB
-	 * 
-	 * both needs to have their alpha component to 255
-	 */
-	// TODO add constant for White pixel
-	// TODO add constant for Black pixel
-
-	private static final int W = 0xFF_FF_FF_FF; // new Color(255, 255, 255, 255).getRGB();
-	private static final int B = 0xFF_00_00_00; // new Color(255, 0, 0, 0).getRGB();
+	private static final int W = 0xFF_FF_FF_FF;
+	private static final int B = 0xFF_00_00_00;
 
 	private static int matrixSize = 0;
-	private static int finderPatternSize = 8;
+	private static int finderPatternSize = 7;
 
-	// private final int[] maximumLengthForVersion = new int[] {17, 32, 53, 78};
-	
+	private static void addFinderPattern(int[][] matrix, int[] topLeftCornerIndex) {
+		int offsetXBeg = topLeftCornerIndex[0], offsetXEnd = offsetXBeg + finderPatternSize;
+		int offsetYBeg = topLeftCornerIndex[1], offsetYEnd = offsetYBeg + finderPatternSize;
+		int offsetXAvg = (int) Math.ceil(offsetXBeg + offsetXEnd) / 2, offsetYAvg = (int) Math.ceil((offsetYBeg + offsetYEnd) / 2);
 
-	// ...  MYDEBUGCOLOR = ...;
-	// feel free to add your own colors for debugging purposes
+		for (int row = offsetXBeg - 1; row < offsetXEnd + 1; row++) {
+			for (int col = offsetYBeg - 1; col < offsetYEnd + 1; col++) {
+				if (col >= 0 && row >= 0 && col < matrixSize && row < matrixSize) {
+					if ((col >= offsetYBeg && row >= offsetXBeg && col < offsetYEnd && row < offsetXEnd)) {
+						if (
+								(col == offsetYBeg || col == offsetYEnd - 1) ||
+								(row == offsetXBeg || row == offsetXEnd - 1)
+						) {
+							matrix[row][col] = B;
+						} else if (
+								(col >  offsetYAvg - 2 && col < offsetYAvg + 2) &&
+								(row > offsetXAvg - 2 && row < offsetXAvg + 2)
+						) {
+							matrix[row][col] = B;
+						}
+					} else {
+						matrix[row][col] = W;
+					}
+				}
+			}
+		}
+	}
 
 	/**
 	 * Create the matrix of a QR code with the given data.
@@ -111,44 +121,10 @@ public class MatrixConstruction {
 	 *            the 2D array to modify: where to add the patterns
 	 */
 	public static void addFinderPatterns(int[][] matrix) {
-		for (int row = 0; row < matrixSize; row++) {
-			for (int col = 0; col < matrixSize; col++) {
-				if (row < finderPatternSize || row > matrixSize - (finderPatternSize + 1)) {
-					if (
-							(col < finderPatternSize || col  > matrixSize - (finderPatternSize + 1)) &&
-							(row < finderPatternSize || col < finderPatternSize)
-					) {
-						if ((row == (finderPatternSize - 1) || col == (finderPatternSize - 1)) ||
-								((row == (matrixSize - (finderPatternSize))) ||
-										(col == (matrixSize - (finderPatternSize))))
-						) {
-							matrix[col][row] = W;
-						} else {
-							matrix[col][row] = B;
-							if (
-									(row > 0 &&
-									row < finderPatternSize - 2 ) ||
-									(row < matrixSize - 1 &&
-									row > matrixSize - finderPatternSize + 1)
-							) {
-								if (
-									(col > 0 && col < finderPatternSize - 2) ||
-									(col > matrixSize - finderPatternSize + 1) && col < matrixSize - 1) {
-									matrix[col][row] = W;
-									if ((col > 1 && col < finderPatternSize - 3) ||
-											(col > matrixSize - finderPatternSize + 2 && col < matrixSize - 2)) {
-										if ((row > 1 && row < finderPatternSize - 3) ||
-												(row > matrixSize - finderPatternSize + 2 && row < matrixSize - 2)) {
-											matrix[col][row] = B;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		int offset = matrixSize - finderPatternSize;
+		addFinderPattern(matrix, new int[] {0, 0});
+		addFinderPattern(matrix, new int[] {offset, 0});
+		addFinderPattern(matrix, new int[] {0, offset});
 	}
 
 	/**
@@ -190,9 +166,10 @@ public class MatrixConstruction {
 	public static void addTimingPatterns(int[][] matrix) {
 		int bit = 0;
 		int timingPatternPosition = 6;
+		int offset = finderPatternSize + 1;
 
 		for (int index = 0; index < matrixSize; index++) {
-			if (index > finderPatternSize - 1 && index < matrixSize - finderPatternSize) {
+			if (index > offset - 1 && index < matrixSize - offset) {
 				int color = bit == 0 ? B : W;
 				matrix[index][timingPatternPosition] = color;
 				matrix[timingPatternPosition][index] = color;
@@ -208,7 +185,7 @@ public class MatrixConstruction {
 	 *            the 2-dimensional array representing the QR code
 	 */
 	public static void addDarkModule(int[][] matrix) {
-		matrix[finderPatternSize][matrixSize - finderPatternSize] = B;
+		matrix[finderPatternSize + 1][matrixSize - finderPatternSize] = B;
 	}
 
 	/**
