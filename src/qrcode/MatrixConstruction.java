@@ -1,8 +1,12 @@
 package qrcode;
 
+import java.awt.*;
+
 public class MatrixConstruction {
 
 	private static final int W = 0xFF_FF_FF_FF;
+	private static final int BL = 0xFF_00_00_FF;
+	private static final int R = 0xFF_FF_00_00;
 	private static final int B = 0xFF_00_00_00;
 	private static final int finderPatternSize = 7;
 	private static final int alignmentPatternSize = 5;
@@ -29,6 +33,8 @@ public class MatrixConstruction {
 								(row > offsetXAvg - 2 && row < offsetXAvg + 2)
 						) {
 							matrix[row][col] = B;
+						} else {
+							matrix[row][col] = W;
 						}
 					} else {
 						matrix[row][col] = W;
@@ -179,7 +185,8 @@ public class MatrixConstruction {
 	 *            the 2-dimensional array representing the QR code
 	 */
 	public static void addDarkModule(int[][] matrix) {
-		matrix[finderPatternSize + 1][matrixSize - finderPatternSize - 1] = B;
+		int offset = finderPatternSize + 1;
+		matrix[offset][matrixSize - offset] = B;
 	}
 
 	/**
@@ -234,7 +241,7 @@ public class MatrixConstruction {
 	 * @return the color with the masking
 	 */
 	public static int maskColor(int col, int row, boolean dataBit, int masking) {
-		boolean isMasked = false;
+		boolean isMasked;
 		switch (masking) {
 			case 0: isMasked = (col + row) % 2 == 0;
 				break;
@@ -251,9 +258,10 @@ public class MatrixConstruction {
 			case 6:
 			case 7: isMasked = ((col * row) % 2 + (col * row) % 3) % 2 == 0;
 				break;
+			default: return dataBit ? R : BL;
 		}
 
-		return dataBit && !isMasked || !dataBit && isMasked ? B : W;
+		return dataBit && !isMasked || !dataBit && isMasked ? R : BL;
 	}
 
 	/**
@@ -265,8 +273,28 @@ public class MatrixConstruction {
 	 *            the data to add
 	 */
 	public static void addDataInformation(int[][] matrix, boolean[] data, int mask) {
-		// TODO Implementer
-
+		// j'ai fait ça pour faire un mapping rapide
+		// la méthode maskCokor() renvois du rouge pour true et du bleu pour false - comme ça on voit bien si des modules se font override
+		// ici row c'est col et inversement, comme je t'avais dit par message (il faudra que je change ça dans tout le reste du code)
+		// matrixSize et timingPatternPosition sont des variables globales statiques de l'objet courrant
+		// cette ligne la : if (matrix[row][col] != 0 || row == timingPatternPosition) continue; - permet de ne pas override des modules déjà dessinés
+		// quand j'appelle maskColor, tu vois que le mask est a 10, du coup aucun mask n'est appliqué comme le mask 10 n'existe pas
+		// comme aucun mask n'est appliqué, on peut directement voir si le bon dataBit a été placé (true ou false dans data[])
+		// je te laisse t'amuser à faire du dessin, t'avais l'air de vouloir en faire, créé une nouvelle branche pour ça
+		// une fois que c'est fait, soit je refactor parce que c'est très sale, soit on la laisse telle qu'elle avec certainement deux trois améliorations que je ferai quand je verrai ta pull request
+		// quand ça sera bon, je m'occuperai de la partie bonus, on pourra aussi la faire ensemble si tu veux
+		
+		int index = 0;
+		int pos = 0;
+		for (int row = matrixSize - 1; row > 0; row -= 2) {
+			for (int col = matrixSize - 1; col >= 0; col--) {
+				if (matrix[row][col] != 0 || row == timingPatternPosition) continue;
+				int color = maskColor(col, row, data[index % data.length], 10);
+				matrix[row - pos%2][col] = color;
+				index++;
+				pos++;
+			}
+		}
 	}
 
 	/*
