@@ -1,31 +1,48 @@
 package qrcode;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MatrixConstruction {
 
-	/*
-	 * Constants defining the color in ARGB format
-	 * 
-	 * W = White integer for ARGB
-	 * 
-	 * B = Black integer for ARGB
-	 * 
-	 * both needs to have their alpha component to 255
-	 */
-	// TODO add constant for White pixel
-	// TODO add constant for Black pixel
+	private static final int W = 0xFF_FF_FF_FF;
+	private static final int BL = 0xFF_00_00_FF;
+	private static final int R = 0xFF_FF_00_00;
+	private static final int B = 0xFF_00_00_00;
+	private static final int finderPatternSize = 7;
+	private static final int alignmentPatternSize = 5;
+	private static final int timingPatternPosition = 6;
 
-	private static final int W = 0xFF_FF_FF_FF; // new Color(255, 255, 255, 255).getRGB();
-	private static final int B = 0xFF_00_00_00; // new Color(255, 0, 0, 0).getRGB();
+	private static int matrixSize = 0;
 
-	// private final int[] maximumLengthForVersion = new int[] {17, 32, 53, 78};
-	
+	private static void addFinderPattern(int[][] matrix, int[] topLeftCornerIndex) {
+		int offsetXBeg = topLeftCornerIndex[0], offsetXEnd = offsetXBeg + finderPatternSize;
+		int offsetYBeg = topLeftCornerIndex[1], offsetYEnd = offsetYBeg + finderPatternSize;
+		int offsetXAvg = (int) Math.ceil(offsetXBeg + offsetXEnd) / 2, offsetYAvg = (int) Math.ceil((offsetYBeg + offsetYEnd) / 2);
 
-	// ...  MYDEBUGCOLOR = ...;
-	// feel free to add your own colors for debugging purposes
+		for (int row = offsetXBeg - 1; row < offsetXEnd + 1; row++) {
+			for (int col = offsetYBeg - 1; col < offsetYEnd + 1; col++) {
+				if (col >= 0 && row >= 0 && col < matrixSize && row < matrixSize) {
+					if ((col >= offsetYBeg && row >= offsetXBeg && col < offsetYEnd && row < offsetXEnd)) {
+						if (
+								(col == offsetYBeg || col == offsetYEnd - 1) ||
+								(row == offsetXBeg || row == offsetXEnd - 1)
+						) {
+							matrix[row][col] = B;
+						} else if (
+								(col >  offsetYAvg - 2 && col < offsetYAvg + 2) &&
+								(row > offsetXAvg - 2 && row < offsetXAvg + 2)
+						) {
+							matrix[row][col] = B;
+						} else {
+							matrix[row][col] = W;
+						}
+					} else {
+						matrix[row][col] = W;
+					}
+				}
+			}
+		}
+	}
 
 	/**
 	 * Create the matrix of a QR code with the given data.
@@ -75,13 +92,15 @@ public class MatrixConstruction {
 	 *         initialized. The modules where the data should be remain empty.
 	 */
 	public static int[][] constructMatrix(int version, int mask) {
-		// TODO Implementer
 		int[][] matrix = initializeMatrix(version);
 
 		addFinderPatterns(matrix);
+		addTimingPatterns(matrix);
+		addAlignmentPatterns(matrix, version);
+		addDarkModule(matrix);
+		addFormatInformation(matrix, mask);
 
 		return matrix;
-
 	}
 
 	/**
@@ -94,7 +113,7 @@ public class MatrixConstruction {
 	 * @return an empty matrix
 	 */
 	public static int[][] initializeMatrix(int version) {
-		int matrixSize = QRCodeInfos.getMatrixSize(version);
+		matrixSize = QRCodeInfos.getMatrixSize(version);
 		return new int[matrixSize][matrixSize];
 	}
 
@@ -105,47 +124,10 @@ public class MatrixConstruction {
 	 *            the 2D array to modify: where to add the patterns
 	 */
 	public static void addFinderPatterns(int[][] matrix) {
-		int finderPatternSize = 8;
-		int matrixSize = matrix.length;
-
-		for (int row = 0; row < matrixSize; row++) {
-			for (int col = 0; col < matrixSize; col++) {
-				if (row < finderPatternSize || row > matrixSize - (finderPatternSize + 1)) {
-					if (
-							(col < finderPatternSize || col  > matrixSize - (finderPatternSize + 1)) &&
-							(row < finderPatternSize || col < finderPatternSize)
-					) {
-						if ((row == (finderPatternSize - 1) ||col == (finderPatternSize - 1)) ||
-								((row == (matrixSize - (finderPatternSize))) ||
-										(col == (matrixSize - (finderPatternSize))))
-						) {
-							matrix[col][row] = W;
-						} else {
-							matrix[col][row] = B;
-							if (
-									(row > 0 &&
-									row < finderPatternSize - 2 ) ||
-									(row < matrixSize - 1 &&
-									row > matrixSize - finderPatternSize + 1)
-							) {
-								if (
-									(col > 0 && col < finderPatternSize - 2) ||
-									(col > matrixSize - finderPatternSize + 1) && col < matrixSize - 1) {
-									matrix[col][row] = W;
-									if ((col > 1 && col < finderPatternSize - 3) ||
-											(col > matrixSize - finderPatternSize + 2 && col < matrixSize - 2)) {
-										if ((row > 1 && row < finderPatternSize - 3) ||
-												(row > matrixSize - finderPatternSize + 2 && row < matrixSize - 2)) {
-											matrix[col][row] = B;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		int offset = matrixSize - finderPatternSize;
+		addFinderPattern(matrix, new int[] {0, 0});
+		addFinderPattern(matrix, new int[] {offset, 0});
+		addFinderPattern(matrix, new int[] {0, offset});
 	}
 
 	/**
@@ -158,7 +140,22 @@ public class MatrixConstruction {
 	 *            included
 	 */
 	public static void addAlignmentPatterns(int[][] matrix, int version) {
-		// TODO Implementer
+		if (version < 2) return;
+		int offsetEnd = matrixSize - 4, offsetBeg = offsetEnd - alignmentPatternSize;
+		int midPos = (offsetBeg + offsetEnd) / 2;
+
+		for (int row = offsetBeg; row < offsetEnd; row++) {
+			for (int col = offsetBeg; col < offsetEnd; col++) {
+				if ((col == offsetBeg || col == offsetEnd - 1) || (row == offsetBeg || row == offsetEnd - 1)) {
+					matrix[col][row] = B;
+					matrix[row][col] = B;
+				} else if (row == midPos && row == col) {
+					matrix[row][row] = B;
+				} else {
+					matrix[row][col] = W;
+				}
+			}
+		}
 	}
 
 	/**
@@ -168,7 +165,17 @@ public class MatrixConstruction {
 	 *            The 2D array to modify
 	 */
 	public static void addTimingPatterns(int[][] matrix) {
-		// TODO Implementer
+		int bit = 0;
+		int offset = finderPatternSize + 1;
+
+		for (int index = 0; index < matrixSize; index++) {
+			if (index > offset - 1 && index < matrixSize - offset) {
+				int color = bit == 0 ? B : W;
+				matrix[index][timingPatternPosition] = color;
+				matrix[timingPatternPosition][index] = color;
+				bit = (bit + 1) % 2;
+			}
+		}
 	}
 
 	/**
@@ -178,7 +185,8 @@ public class MatrixConstruction {
 	 *            the 2-dimensional array representing the QR code
 	 */
 	public static void addDarkModule(int[][] matrix) {
-		// TODO Implementer
+		int offset = finderPatternSize + 1;
+		matrix[offset][matrixSize - offset] = B;
 	}
 
 	/**
@@ -190,7 +198,29 @@ public class MatrixConstruction {
 	 *            the mask id
 	 */
 	public static void addFormatInformation(int[][] matrix, int mask) {
-		// TODO Implementer
+		boolean[] maskInfo = QRCodeInfos.getFormatSequence(mask);
+
+		int index = 0;
+		for (int col = matrixSize - 1; col >= 0; col--) {
+			if (
+					col != timingPatternPosition &&
+					(col > (matrixSize - finderPatternSize - 1) || col < (finderPatternSize + 2))
+			) {
+				matrix[finderPatternSize + 1][col] = maskInfo[index] ? B : W;
+				index++;
+			}
+		}
+
+		index = 0;
+		for (int row = 0; row < matrixSize; row++) {
+			if (
+					row != timingPatternPosition &&
+					(row > (matrixSize - finderPatternSize - 2) || row < (finderPatternSize + 1))
+			) {
+				matrix[row][finderPatternSize + 1] = maskInfo[index] ? B : W;
+				index++;
+			}
+		}
 	}
 
 	/*
@@ -211,7 +241,7 @@ public class MatrixConstruction {
 	 * @return the color with the masking
 	 */
 	public static int maskColor(int col, int row, boolean dataBit, int masking) {
-		boolean isMasked = false;
+		boolean isMasked;
 		switch (masking) {
 			case 0: isMasked = (col + row) % 2 == 0;
 				break;
@@ -228,9 +258,10 @@ public class MatrixConstruction {
 			case 6:
 			case 7: isMasked = ((col * row) % 2 + (col * row) % 3) % 2 == 0;
 				break;
+			default: return dataBit ? R : BL;
 		}
 
-		return dataBit && !isMasked || !dataBit && isMasked ? B : W;
+		return dataBit && !isMasked || !dataBit && isMasked ? R : BL;
 	}
 
 	/**
@@ -242,8 +273,28 @@ public class MatrixConstruction {
 	 *            the data to add
 	 */
 	public static void addDataInformation(int[][] matrix, boolean[] data, int mask) {
-		// TODO Implementer
-
+		// j'ai fait ça pour faire un mapping rapide
+		// la méthode maskCokor() renvois du rouge pour true et du bleu pour false - comme ça on voit bien si des modules se font override
+		// ici row c'est col et inversement, comme je t'avais dit par message (il faudra que je change ça dans tout le reste du code)
+		// matrixSize et timingPatternPosition sont des variables globales statiques de l'objet courrant
+		// cette ligne la : if (matrix[row][col] != 0 || row == timingPatternPosition) continue; - permet de ne pas override des modules déjà dessinés
+		// quand j'appelle maskColor, tu vois que le mask est a 10, du coup aucun mask n'est appliqué comme le mask 10 n'existe pas
+		// comme aucun mask n'est appliqué, on peut directement voir si le bon dataBit a été placé (true ou false dans data[])
+		// je te laisse t'amuser à faire du dessin, t'avais l'air de vouloir en faire, créé une nouvelle branche pour ça
+		// une fois que c'est fait, soit je refactor parce que c'est très sale, soit on la laisse telle qu'elle avec certainement deux trois améliorations que je ferai quand je verrai ta pull request
+		// quand ça sera bon, je m'occuperai de la partie bonus, on pourra aussi la faire ensemble si tu veux
+		
+		int index = 0;
+		int pos = 0;
+		for (int row = matrixSize - 1; row > 0; row -= 2) {
+			for (int col = matrixSize - 1; col >= 0; col--) {
+				if (matrix[row][col] != 0 || row == timingPatternPosition) continue;
+				int color = maskColor(col, row, data[index % data.length], 10);
+				matrix[row - pos%2][col] = color;
+				index++;
+				pos++;
+			}
+		}
 	}
 
 	/*
