@@ -60,25 +60,24 @@ public final class DataEncoding {
 	public static int[] addInformations(int[] inputBytes) {
 		int length = inputBytes.length;
 		int outputLength = length + 2;
-		int caseLength = outputLength-1;
 		int[] outputBytes = new int[outputLength];
-		for(int i = 0; i < outputLength; i++){
+
+		for(int i = 0; i < outputLength - 1; i++){
 			switch(i){
 				case 0 :
-					outputBytes[i] = (64 & 240)|((length & 240)>>4);
+					outputBytes[i] = (64 & 240) | ((length & 240) >> 4);
 					break;
 				case 1 :
-					outputBytes[i] = ((length & 15)<<4)|((inputBytes[i-1] & 240)>>4);
+					outputBytes[i] = ((length & 15) << 4) | ((inputBytes[i - 1] & 240) >> 4);
 					break;
-				default:{
-					if(i == outputLength - 1){
-						outputBytes[i] = ((inputBytes[i-2] & 15)<<4)|((0)>>4);
-					}else{
-						outputBytes[i] = ((inputBytes[i-2] & 15)<<4)|((inputBytes[i-1] & 240)>>4);
-					}
-				}
+				default:
+					outputBytes[i] = ((inputBytes[i - 2] & 15) << 4) | ((inputBytes[i - 1] & 240) >> 4);
+					break;
 			}
 		}
+
+		outputBytes[outputLength - 1] = ((inputBytes[outputLength - 3] & 15) << 4);
+
 		return outputBytes;
 	}
 
