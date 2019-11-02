@@ -94,21 +94,19 @@ public final class DataEncoding {
 	 */
 	public static int[] fillSequence(int[] encodedData, int finalLength) {
 		int[] paddedSequence = new int[finalLength];
-		if(encodedData.length >= finalLength){
+		int length = encodedData.length;
+
+		if(length >= finalLength){
 			return encodedData;
 		}else{
-
-			for(int i = 0; i < encodedData.length; i++){
+			for(int i = 0; i < length; i++){
 				paddedSequence[i] = encodedData[i];
 			}
 
-			for(int i = encodedData.length; i < finalLength; i++){
-				if((paddedSequence[i-1] != 236)){
-					paddedSequence[i] = 236;
-				}else{
-					paddedSequence[i] = 17;
-				}
+			for(int i = length; i < finalLength; i++){
+				paddedSequence[i] = (paddedSequence[i - 1] != 236) ? (paddedSequence[i] = 236) : (paddedSequence[i] = 17);
 			}
+
 			return paddedSequence;
 		}
 	}
