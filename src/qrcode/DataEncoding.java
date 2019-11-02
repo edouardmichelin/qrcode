@@ -124,12 +124,15 @@ public final class DataEncoding {
 		int[] correctionBytes = ErrorCorrectionEncoding.encode(encodedData, eccLength);
 		int inputLength = encodedData.length;
 		int[] output = new int[inputLength + eccLength];
+
 		for(int i = 0; i < inputLength; i++){
 			output[i] = encodedData[i];
 		}
-		for(int i = inputLength; i - inputLength < eccLength; i++){
+
+		for(int i = inputLength; i < eccLength + inputLength; i++){
 			output[i] = correctionBytes[i - inputLength];
 		}
+
 		return output;
 	}
 
