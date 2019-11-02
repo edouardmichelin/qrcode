@@ -122,12 +122,13 @@ public final class DataEncoding {
 	 */
 	public static int[] addErrorCorrection(int[] encodedData, int eccLength) {
 		int[] correctionBytes = ErrorCorrectionEncoding.encode(encodedData, eccLength);
-		int[] output = new int[encodedData.length + eccLength];
-		for(int i = 0; i < encodedData.length; i++){
+		int inputLength = encodedData.length;
+		int[] output = new int[inputLength + eccLength];
+		for(int i = 0; i < inputLength; i++){
 			output[i] = encodedData[i];
 		}
-		for(int i = encodedData.length; i-encodedData.length < eccLength; i++){
-			output[i] = encodedData[i-eccLength];
+		for(int i = inputLength; i - inputLength < eccLength; i++){
+			output[i] = correctionBytes[i - inputLength];
 		}
 		return output;
 	}
