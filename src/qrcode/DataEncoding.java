@@ -11,7 +11,7 @@ public final class DataEncoding {
 	private static final int BYTE_LENGTH = 8;
 
 	private static String padLeft(String input, int length) {
-		if (input.length() == length) return input;
+		if (length == input.length()) return input;
 
 		StringBuilder sb = new StringBuilder();
 		while (sb.length() < length - input.length()) {
@@ -27,7 +27,16 @@ public final class DataEncoding {
 	 * @return The binary string of the encoded input
 	 */
 	public static boolean[] byteModeEncoding(String input, int version) {
-		return DataEncoding.bytesToBinaryArray(DataEncoding.encodeString(input, QRCodeInfos.getMaxInputLength((version))));
+		int maxInputLength = QRCodeInfos.getMaxInputLength((version));
+		int maxCodeWordsLength = QRCodeInfos.getCodeWordsLength(version);
+		int maxECCLength = QRCodeInfos.getECCLength(version);
+
+		int[] encodedString = encodeString(input, maxInputLength);
+		addInformations(encodedString);
+		fillSequence(encodedString, maxCodeWordsLength);
+		addErrorCorrection(encodedString, maxECCLength);
+
+		return bytesToBinaryArray(encodedString);
 	}
 
 	/**
@@ -58,8 +67,23 @@ public final class DataEncoding {
 	 * @return The input bytes with an header giving the type and size of the data
 	 */
 	public static int[] addInformations(int[] inputBytes) {
-		// TODO Implementer
-		return null;
+		int offset = 2;
+		int length = inputBytes.length;
+		int outputLength = length + offset;
+		int[] outputBytes = new int[outputLength];
+
+		if (length < (offset + 1)) throw new Error(String.format("Input length must be greater than %s", offset + 1));
+
+		outputBytes[0] = (64 & 240) | ((length & 240) >> 4);
+		outputBytes[1] = ((length & 15) << 4) | ((inputBytes[0] & 240) >> 4);
+
+		for(int i = offset; i < outputLength - 1; i++){
+			outputBytes[i] = ((inputBytes[i - offset] & 15) << 4) | ((inputBytes[i - 1] & 240) >> 4);
+		}
+
+		outputBytes[outputLength - 1] = ((inputBytes[outputLength - 3] & 15) << 4);
+
+		return outputBytes;
 	}
 
 	/**
@@ -74,8 +98,20 @@ public final class DataEncoding {
 	 *         bytes 236,17
 	 */
 	public static int[] fillSequence(int[] encodedData, int finalLength) {
-		// TODO Implementer
-		return null;
+		int[] paddedSequence = new int[finalLength];
+		int length = encodedData.length;
+		int index = 0;
+
+		System.arraycopy(encodedData, 0, paddedSequence, 0, length);
+
+		if (length >= finalLength) return paddedSequence;
+
+		for (int i = length; i < finalLength; i++) {
+			paddedSequence[i] = index % 2 == 0 ? 236 : 17;
+			index++;
+		}
+
+		return paddedSequence;
 	}
 
 	/**
@@ -88,8 +124,14 @@ public final class DataEncoding {
 	 * @return the original data concatenated with the error correction
 	 */
 	public static int[] addErrorCorrection(int[] encodedData, int eccLength) {
-		// TODO Implementer
-		return null;
+		int inputLength = encodedData.length;
+		int[] correctionBytes = ErrorCorrectionEncoding.encode(encodedData, eccLength);
+		int[] output = new int[inputLength + eccLength];
+
+		System.arraycopy(encodedData, 0, output, 0, inputLength);
+		System.arraycopy(correctionBytes, 0, output, inputLength, eccLength);
+
+		return output;
 	}
 
 	/**
@@ -104,8 +146,8 @@ public final class DataEncoding {
 		boolean[] result = new boolean[data.length * BYTE_LENGTH];
 		int index = 0;
 
-		for (int _byte : data) {
-			for (String bit : padLeft(Integer.toBinaryString(_byte), BYTE_LENGTH).split("")) {
+		for (int dataByte : data) {
+			for (String bit : padLeft(Integer.toBinaryString(dataByte), BYTE_LENGTH).split("")) {
 				result[index] = bit.equals("1");
 				index++;
 			}
