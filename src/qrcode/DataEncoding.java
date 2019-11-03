@@ -11,7 +11,7 @@ public final class DataEncoding {
 	private static final int BYTE_LENGTH = 8;
 
 	private static String padLeft(String input, int length) {
-		if (input.length() == length) return input;
+		if (length == input.length()) return input;
 
 		StringBuilder sb = new StringBuilder();
 		while (sb.length() < length - input.length()) {
@@ -27,7 +27,16 @@ public final class DataEncoding {
 	 * @return The binary string of the encoded input
 	 */
 	public static boolean[] byteModeEncoding(String input, int version) {
-		return DataEncoding.bytesToBinaryArray(DataEncoding.encodeString(input, QRCodeInfos.getMaxInputLength((version))));
+		int maxInputLength = QRCodeInfos.getMaxInputLength((version));
+		int maxCodeWordsLength = QRCodeInfos.getCodeWordsLength(version);
+		int maxECCLength = QRCodeInfos.getECCLength(version);
+
+		int[] encodedString = encodeString(input, maxInputLength);
+		addInformations(encodedString);
+		fillSequence(encodedString, maxCodeWordsLength);
+		addErrorCorrection(encodedString, maxECCLength);
+
+		return bytesToBinaryArray(encodedString);
 	}
 
 	/**
@@ -58,22 +67,18 @@ public final class DataEncoding {
 	 * @return The input bytes with an header giving the type and size of the data
 	 */
 	public static int[] addInformations(int[] inputBytes) {
+		int offset = 2;
 		int length = inputBytes.length;
-		int outputLength = length + 2;
+		int outputLength = length + offset;
 		int[] outputBytes = new int[outputLength];
 
-		for(int i = 0; i < outputLength - 1; i++){
-			switch(i){
-				case 0 :
-					outputBytes[i] = (64 & 240) | ((length & 240) >> 4);
-					break;
-				case 1 :
-					outputBytes[i] = ((length & 15) << 4) | ((inputBytes[i - 1] & 240) >> 4);
-					break;
-				default:
-					outputBytes[i] = ((inputBytes[i - 2] & 15) << 4) | ((inputBytes[i - 1] & 240) >> 4);
-					break;
-			}
+		if (length < (offset + 1)) throw new Error(String.format("Input length must be greater than %s", offset + 1));
+
+		outputBytes[0] = (64 & 240) | ((length & 240) >> 4);
+		outputBytes[1] = ((length & 15) << 4) | ((inputBytes[0] & 240) >> 4);
+
+		for(int i = offset; i < outputLength - 1; i++){
+			outputBytes[i] = ((inputBytes[i - offset] & 15) << 4) | ((inputBytes[i - 1] & 240) >> 4);
 		}
 
 		outputBytes[outputLength - 1] = ((inputBytes[outputLength - 3] & 15) << 4);
@@ -95,20 +100,18 @@ public final class DataEncoding {
 	public static int[] fillSequence(int[] encodedData, int finalLength) {
 		int[] paddedSequence = new int[finalLength];
 		int length = encodedData.length;
+		int index = 0;
 
-		if(length >= finalLength){
-			return encodedData;
-		}else{
-			for(int i = 0; i < length; i++){
-				paddedSequence[i] = encodedData[i];
-			}
+		System.arraycopy(encodedData, 0, paddedSequence, 0, length);
 
-			for(int i = length; i < finalLength; i++){
-				paddedSequence[i] = (paddedSequence[i - 1] != 236) ? (paddedSequence[i] = 236) : (paddedSequence[i] = 17);
-			}
+		if (length >= finalLength) return paddedSequence;
 
-			return paddedSequence;
+		for (int i = length; i < finalLength; i++) {
+			paddedSequence[i] = index % 2 == 0 ? 236 : 17;
+			index++;
 		}
+
+		return paddedSequence;
 	}
 
 	/**
@@ -121,17 +124,12 @@ public final class DataEncoding {
 	 * @return the original data concatenated with the error correction
 	 */
 	public static int[] addErrorCorrection(int[] encodedData, int eccLength) {
-		int[] correctionBytes = ErrorCorrectionEncoding.encode(encodedData, eccLength);
 		int inputLength = encodedData.length;
+		int[] correctionBytes = ErrorCorrectionEncoding.encode(encodedData, eccLength);
 		int[] output = new int[inputLength + eccLength];
 
-		for(int i = 0; i < inputLength; i++){
-			output[i] = encodedData[i];
-		}
-
-		for(int i = inputLength; i < eccLength + inputLength; i++){
-			output[i] = correctionBytes[i - inputLength];
-		}
+		System.arraycopy(encodedData, 0, output, 0, inputLength);
+		System.arraycopy(correctionBytes, 0, output, inputLength, eccLength);
 
 		return output;
 	}
@@ -148,8 +146,8 @@ public final class DataEncoding {
 		boolean[] result = new boolean[data.length * BYTE_LENGTH];
 		int index = 0;
 
-		for (int _byte : data) {
-			for (String bit : padLeft(Integer.toBinaryString(_byte), BYTE_LENGTH).split("")) {
+		for (int dataByte : data) {
+			for (String bit : padLeft(Integer.toBinaryString(dataByte), BYTE_LENGTH).split("")) {
 				result[index] = bit.equals("1");
 				index++;
 			}
