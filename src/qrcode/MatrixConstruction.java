@@ -46,7 +46,7 @@ public class MatrixConstruction {
 
 	/**
 	 * Create the matrix of a QR code with the given data.
-	 * 
+	 *
 	 * @param version
 	 *            The version of the QR code
 	 * @param data
@@ -72,15 +72,15 @@ public class MatrixConstruction {
 
 	/*
 	 * =======================================================================
-	 * 
+	 *
 	 * ****************************** PART 2 *********************************
-	 * 
+	 *
 	 * =======================================================================
 	 */
 
 	/**
 	 * Create a matrix (2D array) ready to accept data for a given version and mask
-	 * 
+	 *
 	 * @param version
 	 *            the version number of QR code (has to be between 1 and 4 included)
 	 * @param mask
@@ -106,7 +106,7 @@ public class MatrixConstruction {
 	/**
 	 * Create an empty 2d array of integers of the size needed for a QR code of the
 	 * given version
-	 * 
+	 *
 	 * @param version
 	 *            the version number of the qr code (has to be between 1 and 4
 	 *            included
@@ -119,7 +119,7 @@ public class MatrixConstruction {
 
 	/**
 	 * Add all finder patterns to the given matrix with a border of White modules.
-	 * 
+	 *
 	 * @param matrix
 	 *            the 2D array to modify: where to add the patterns
 	 */
@@ -132,7 +132,7 @@ public class MatrixConstruction {
 
 	/**
 	 * Add the alignment pattern if needed, does nothing for version 1
-	 * 
+	 *
 	 * @param matrix
 	 *            The 2D array to modify
 	 * @param version
@@ -160,7 +160,7 @@ public class MatrixConstruction {
 
 	/**
 	 * Add the timings patterns
-	 * 
+	 *
 	 * @param matrix
 	 *            The 2D array to modify
 	 */
@@ -180,7 +180,7 @@ public class MatrixConstruction {
 
 	/**
 	 * Add the dark module to the matrix
-	 * 
+	 *
 	 * @param matrix
 	 *            the 2-dimensional array representing the QR code
 	 */
@@ -191,7 +191,7 @@ public class MatrixConstruction {
 
 	/**
 	 * Add the format information to the matrix
-	 * 
+	 *
 	 * @param matrix
 	 *            the 2-dimensional array representing the QR code to modify
 	 * @param mask
@@ -231,7 +231,7 @@ public class MatrixConstruction {
 
 	/**
 	 * Choose the color to use with the given coordinate using the masking 0
-	 * 
+	 *
 	 * @param col
 	 *            x-coordinate
 	 * @param row
@@ -267,7 +267,7 @@ public class MatrixConstruction {
 
 	/**
 	 * Add the data bits into the QR code matrix
-	 * 
+	 *
 	 * @param matrix
 	 *            a 2-dimensionnal array where the bits needs to be added
 	 * @param data
@@ -284,33 +284,70 @@ public class MatrixConstruction {
 		// je te laisse t'amuser à faire du dessin, t'avais l'air de vouloir en faire, créé une nouvelle branche pour ça
 		// une fois que c'est fait, soit je refactor parce que c'est très sale, soit on la laisse telle qu'elle avec certainement deux trois améliorations que je ferai quand je verrai ta pull request
 		// quand ça sera bon, je m'occuperai de la partie bonus, on pourra aussi la faire ensemble si tu veux
-		
+
 		int index = 0;
-		int pos = 0;
-		for (int row = matrixSize - 1; row > 0; row -= 2) {
-			for (int col = matrixSize - 1; col >= 0; col--) {
-				if (matrix[row][col] != 0 || row == timingPatternPosition) continue;
-				int color = maskColor(col, row, data[index % data.length], 10);
-				matrix[row - pos%2][col] = color;
-				index++;
-				pos++;
+		boolean turn = true;
+
+		for (int col = matrixSize - 1; col >= 0; col -= 2) {
+			turn = !turn;
+			int turnIndex = matrixSize -1;
+
+			for (int row = matrixSize - 1; row >= 0; row--) {
+
+				if(index == data.length){
+					if (matrix[col][turn ? row - turnIndex : row] != 0 ) {
+						if(turn) turnIndex -= 2;
+						continue;
+					}
+					matrix[col][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, false, 10);
+					if(turn) turnIndex -= 2;
+					continue;
+				}
+
+				if (matrix[col][turn ? row - turnIndex : row] != 0 ){
+
+					if(col == 0){
+						if(turn) turnIndex -= 2;
+						continue;
+					}
+
+					if(matrix[col-1][turn ? row - turnIndex : row] != 0 ){
+						if(turn) turnIndex -= 2;
+						continue;
+					}else{
+						matrix[col - 1][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, data[(index)], 10);
+						index += 1;
+						if(turn) turnIndex -= 2;
+						continue;
+					}
+				}
+
+				matrix[col][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, data[index], 10);
+
+				if(col == 0){
+					index += 1;
+				}else{
+					matrix[col - 1][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, data[(index + 1)], 10);
+					index+=2;
+				}
+				if(turn) turnIndex -= 2;
 			}
 		}
 	}
 
 	/*
 	 * =======================================================================
-	 * 
+	 *
 	 * ****************************** BONUS **********************************
-	 * 
+	 *
 	 * =======================================================================
 	 */
 
 	/**
 	 * Create the matrix of a QR code with the given data.
-	 * 
+	 *
 	 * The mask is computed automatically so that it provides the least penalty
-	 * 
+	 *
 	 * @param version
 	 *            The version of the QR code
 	 * @param data
@@ -327,7 +364,7 @@ public class MatrixConstruction {
 	/**
 	 * Find the best mask to apply to a QRcode so that the penalty score is
 	 * minimized. Compute the penalty score with evaluate
-	 * 
+	 *
 	 * @param data
 	 * @return the mask number that minimize the penalty
 	 */
@@ -338,14 +375,14 @@ public class MatrixConstruction {
 
 	/**
 	 * Compute the penalty score of a matrix
-	 * 
+	 *
 	 * @param matrix:
 	 *            the QR code in matrix form
 	 * @return the penalty score obtained by the QR code, lower the better
 	 */
 	public static int evaluate(int[][] matrix) {
 		//TODO BONUS
-	
+
 		return 0;
 	}
 
