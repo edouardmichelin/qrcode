@@ -30,11 +30,12 @@ public final class DataEncoding {
 		int maxInputLength = QRCodeInfos.getMaxInputLength((version));
 		int maxCodeWordsLength = QRCodeInfos.getCodeWordsLength(version);
 		int maxECCLength = QRCodeInfos.getECCLength(version);
+		int[] encodedString;
 
-		int[] encodedString = encodeString(input, maxInputLength);
-		addInformations(encodedString);
-		fillSequence(encodedString, maxCodeWordsLength);
-		addErrorCorrection(encodedString, maxECCLength);
+		encodedString = encodeString(input, maxInputLength);
+		encodedString = addInformations(encodedString);
+		encodedString = fillSequence(encodedString, maxCodeWordsLength);
+		encodedString = addErrorCorrection(encodedString, maxECCLength);
 
 		return bytesToBinaryArray(encodedString);
 	}
