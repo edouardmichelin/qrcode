@@ -255,8 +255,9 @@ public class MatrixConstruction {
 				break;
 			case 5: isMasked = ((col * row) % 2 + (col * row) % 3) == 0;
 				break;
-			case 6:
-			case 7: isMasked = ((col * row) % 2 + (col * row) % 3) % 2 == 0;
+			case 6: isMasked = ((col * row) % 2 + (col * row) % 3) % 2 == 0;
+				break;
+			case 7: isMasked = ((col + row) % 2 + (col * row) % 3) % 2 == 0;
 				break;
 			default: return dataBit ? R : BL;
 		}
