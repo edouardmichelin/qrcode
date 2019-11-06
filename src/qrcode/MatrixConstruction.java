@@ -274,64 +274,50 @@ public class MatrixConstruction {
 	 *            the data to add
 	 */
 	public static void addDataInformation(int[][] matrix, boolean[] data, int mask) {
-		// j'ai fait ça pour faire un mapping rapide
-		// la méthode maskCokor() renvois du rouge pour true et du bleu pour false - comme ça on voit bien si des modules se font override
-		// ici row c'est col et inversement, comme je t'avais dit par message (il faudra que je change ça dans tout le reste du code)
-		// matrixSize et timingPatternPosition sont des variables globales statiques de l'objet courrant
-		// cette ligne la : if (matrix[row][col] != 0 || row == timingPatternPosition) continue; - permet de ne pas override des modules déjà dessinés
-		// quand j'appelle maskColor, tu vois que le mask est a 10, du coup aucun mask n'est appliqué comme le mask 10 n'existe pas
-		// comme aucun mask n'est appliqué, on peut directement voir si le bon dataBit a été placé (true ou false dans data[])
-		// je te laisse t'amuser à faire du dessin, t'avais l'air de vouloir en faire, créé une nouvelle branche pour ça
-		// une fois que c'est fait, soit je refactor parce que c'est très sale, soit on la laisse telle qu'elle avec certainement deux trois améliorations que je ferai quand je verrai ta pull request
-		// quand ça sera bon, je m'occuperai de la partie bonus, on pourra aussi la faire ensemble si tu veux
 
 		int index = 0;
 		boolean turn = true;
+		boolean bit;
+		boolean nextBit;
 
 		for (int col = matrixSize - 1; col >= 0; col -= 2) {
-
 			if(col == timingPatternPosition) col -= 1;
 
-			turn = !turn;
 			int turnIndex = matrixSize -1;
+			turn = !turn;
 
 			for (int row = matrixSize - 1; row >= 0; row--) {
+				int fillRow = turn ? row - turnIndex : row;
 
-				if(index == data.length){
-					if (matrix[col][turn ? row - turnIndex : row] != 0 ) {
-						if(turn) turnIndex -= 2;
-						continue;
-					}
-					matrix[col][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, false, mask);
-					if(turn) turnIndex -= 2;
-					continue;
-				}else if(index == data.length - 1){
-					if (matrix[col][turn ? row - turnIndex : row] != 0 ) {
-						if(turn) turnIndex -= 2;
-						continue;
-					}
-					matrix[col][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, data[index], mask);
-					if(turn) turnIndex -= 2;
-					continue;
+				if(index >= data.length || data.length == 0){
+					bit = false;
+					nextBit = false;
+					index = 0;
+				}else{
+					bit = data.length > 0 ? data[index] : false;
+					nextBit = (data.length > 0 && index <= data.length - 2) ? data[index + 1] : false;
 				}
 
-				if (matrix[col][turn ? row - turnIndex : row] != 0 ){
-
-
-					if(matrix[col-1][turn ? row - turnIndex : row] != 0 ){
+				if (matrix[col][fillRow] != 0 ){
+					if(matrix[col-1][fillRow] != 0 ){
 						if(turn) turnIndex -= 2;
 						continue;
 					}else{
-						matrix[col - 1][turn ? row - turnIndex : row] = maskColor(col-1, turn ? row - turnIndex : row, data[(index)], mask);
+						matrix[col - 1][fillRow] = maskColor(col-1, fillRow, bit, mask);
 						index += 1;
 						if(turn) turnIndex -= 2;
 						continue;
 					}
 				}
 
-				matrix[col][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, data[index], mask);
-				matrix[col - 1][turn ? row - turnIndex : row] = maskColor(col-1, turn ? row - turnIndex : row, data[(index + 1)], mask);
-				index+=2;
+				matrix[col][fillRow] = maskColor(col, fillRow, bit, mask);
+
+				if(index == data.length-1){
+					continue;
+				}else {
+					matrix[col - 1][fillRow] = maskColor(col - 1, fillRow, nextBit, mask);
+				}
+				index += 2;
 
 				if(turn) turnIndex -= 2;
 			}
