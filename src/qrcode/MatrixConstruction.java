@@ -259,10 +259,10 @@ public class MatrixConstruction {
 				break;
 			case 7: isMasked = ((col + row) % 2 + (col * row) % 3) % 2 == 0;
 				break;
-			default: return dataBit ? R : BL;
+			default: return dataBit ? B : W;
 		}
 
-		return dataBit && !isMasked || !dataBit && isMasked ? R : BL;
+		return dataBit && !isMasked || !dataBit && isMasked ? B : W;
 	}
 
 	/**
@@ -289,6 +289,9 @@ public class MatrixConstruction {
 		boolean turn = true;
 
 		for (int col = matrixSize - 1; col >= 0; col -= 2) {
+
+			if(col == timingPatternPosition) col -= 1;
+
 			turn = !turn;
 			int turnIndex = matrixSize -1;
 
@@ -299,37 +302,37 @@ public class MatrixConstruction {
 						if(turn) turnIndex -= 2;
 						continue;
 					}
-					matrix[col][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, false, 10);
+					matrix[col][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, false, mask);
+					if(turn) turnIndex -= 2;
+					continue;
+				}else if(index == data.length - 1){
+					if (matrix[col][turn ? row - turnIndex : row] != 0 ) {
+						if(turn) turnIndex -= 2;
+						continue;
+					}
+					matrix[col][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, data[index], mask);
 					if(turn) turnIndex -= 2;
 					continue;
 				}
 
 				if (matrix[col][turn ? row - turnIndex : row] != 0 ){
 
-					if(col == 0){
-						if(turn) turnIndex -= 2;
-						continue;
-					}
 
 					if(matrix[col-1][turn ? row - turnIndex : row] != 0 ){
 						if(turn) turnIndex -= 2;
 						continue;
 					}else{
-						matrix[col - 1][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, data[(index)], 10);
+						matrix[col - 1][turn ? row - turnIndex : row] = maskColor(col-1, turn ? row - turnIndex : row, data[(index)], mask);
 						index += 1;
 						if(turn) turnIndex -= 2;
 						continue;
 					}
 				}
 
-				matrix[col][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, data[index], 10);
+				matrix[col][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, data[index], mask);
+				matrix[col - 1][turn ? row - turnIndex : row] = maskColor(col-1, turn ? row - turnIndex : row, data[(index + 1)], mask);
+				index+=2;
 
-				if(col == 0){
-					index += 1;
-				}else{
-					matrix[col - 1][turn ? row - turnIndex : row] = maskColor(col, turn ? row - turnIndex : row, data[(index + 1)], 10);
-					index+=2;
-				}
 				if(turn) turnIndex -= 2;
 			}
 		}
