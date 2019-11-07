@@ -295,13 +295,13 @@ public class MatrixConstruction {
 					bit = false;
 					nextBit = false;
 					index = 0;
-				}else {
+				} else {
 					bit = data.length > 0 ? data[index] : false;
 					nextBit = (data.length > 0 && index <= data.length - 2) ? data[index + 1] : false;
 				}
 
-				if (matrix[col][rowIndex] != 0 ) {
-					if (matrix[col - 1][rowIndex] != 0 ) {
+				if (matrix[col][rowIndex] != 0) {
+					if (matrix[col - 1][rowIndex] != 0) {
 						if(desc) turnIndex -= 2;
 						continue;
 					}
@@ -309,17 +309,16 @@ public class MatrixConstruction {
 					index += 1;
 					if (desc) turnIndex -= 2;
 					continue;
-
 				}
 
 				matrix[col][rowIndex] = maskColor(col, rowIndex, bit, mask);
 
-				if(index == data.length-1) continue;
+				if (index == data.length - 1) continue;
 
 				matrix[col - 1][rowIndex] = maskColor(col - 1, rowIndex, nextBit, mask);
 				index += 2;
 
-				if(desc) turnIndex -= 2;
+				if (desc) turnIndex -= 2;
 			}
 		}
 	}
