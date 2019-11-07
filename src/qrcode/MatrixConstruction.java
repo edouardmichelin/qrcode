@@ -276,51 +276,50 @@ public class MatrixConstruction {
 	public static void addDataInformation(int[][] matrix, boolean[] data, int mask) {
 
 		int index = 0;
-		boolean descending = true;
+		boolean desc = true;
 		boolean bit;
 		boolean nextBit;
 		int turnIndex;
+		int rowIndex;
 
 		for (int col = matrixSize - 1; col >= 0; col -= 2) {
 			if(col == timingPatternPosition) col -= 1;
 
 			turnIndex = matrixSize -1;
-			descending = !descending;
+			desc = !desc;
 
 			for (int row = matrixSize - 1; row >= 0; row--) {
-				int fillRow = descending ? row - turnIndex : row;
+				rowIndex = desc ? row - turnIndex : row;
 
-				if(index >= data.length || data.length == 0){
+				if (index >= data.length || data.length == 0) {
 					bit = false;
 					nextBit = false;
 					index = 0;
-				}else{
+				}else {
 					bit = data.length > 0 ? data[index] : false;
 					nextBit = (data.length > 0 && index <= data.length - 2) ? data[index + 1] : false;
 				}
 
-				if (matrix[col][fillRow] != 0 ){
-					if(matrix[col-1][fillRow] != 0 ){
-						if(descending) turnIndex -= 2;
-						continue;
-					}else{
-						matrix[col - 1][fillRow] = maskColor(col-1, fillRow, bit, mask);
-						index += 1;
-						if(descending) turnIndex -= 2;
+				if (matrix[col][rowIndex] != 0 ) {
+					if (matrix[col - 1][rowIndex] != 0 ) {
+						if(desc) turnIndex -= 2;
 						continue;
 					}
-				}
-
-				matrix[col][fillRow] = maskColor(col, fillRow, bit, mask);
-
-				if(index == data.length-1){
+					matrix[col - 1][rowIndex] = maskColor(col - 1, rowIndex, bit, mask);
+					index += 1;
+					if (desc) turnIndex -= 2;
 					continue;
-				}else {
-					matrix[col - 1][fillRow] = maskColor(col - 1, fillRow, nextBit, mask);
+
 				}
+
+				matrix[col][rowIndex] = maskColor(col, rowIndex, bit, mask);
+
+				if(index == data.length-1) continue;
+
+				matrix[col - 1][rowIndex] = maskColor(col - 1, rowIndex, nextBit, mask);
 				index += 2;
 
-				if(descending) turnIndex -= 2;
+				if(desc) turnIndex -= 2;
 			}
 		}
 	}
