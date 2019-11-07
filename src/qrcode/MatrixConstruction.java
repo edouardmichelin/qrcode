@@ -276,18 +276,19 @@ public class MatrixConstruction {
 	public static void addDataInformation(int[][] matrix, boolean[] data, int mask) {
 
 		int index = 0;
-		boolean turn = true;
+		boolean descending = true;
 		boolean bit;
 		boolean nextBit;
+		int turnIndex;
 
 		for (int col = matrixSize - 1; col >= 0; col -= 2) {
 			if(col == timingPatternPosition) col -= 1;
 
-			int turnIndex = matrixSize -1;
-			turn = !turn;
+			turnIndex = matrixSize -1;
+			descending = !descending;
 
 			for (int row = matrixSize - 1; row >= 0; row--) {
-				int fillRow = turn ? row - turnIndex : row;
+				int fillRow = descending ? row - turnIndex : row;
 
 				if(index >= data.length || data.length == 0){
 					bit = false;
@@ -300,12 +301,12 @@ public class MatrixConstruction {
 
 				if (matrix[col][fillRow] != 0 ){
 					if(matrix[col-1][fillRow] != 0 ){
-						if(turn) turnIndex -= 2;
+						if(descending) turnIndex -= 2;
 						continue;
 					}else{
 						matrix[col - 1][fillRow] = maskColor(col-1, fillRow, bit, mask);
 						index += 1;
-						if(turn) turnIndex -= 2;
+						if(descending) turnIndex -= 2;
 						continue;
 					}
 				}
@@ -319,7 +320,7 @@ public class MatrixConstruction {
 				}
 				index += 2;
 
-				if(turn) turnIndex -= 2;
+				if(descending) turnIndex -= 2;
 			}
 		}
 	}
