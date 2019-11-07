@@ -1,22 +1,18 @@
 package qrcode;
 
-import java.awt.*;
-
 public class MatrixConstruction {
 
 	private static final int W = 0xFF_FF_FF_FF;
-	private static final int BL = 0xFF_00_00_FF;
-	private static final int R = 0xFF_FF_00_00;
 	private static final int B = 0xFF_00_00_00;
-	private static final int finderPatternSize = 7;
-	private static final int alignmentPatternSize = 5;
-	private static final int timingPatternPosition = 6;
+	private static final int FINDER_PATTERN_SIZE = 7;
+	private static final int ALIGNMENT_PATTERN_SIZE = 5;
+	private static final int TIMING_PATTERN_POSITION = 6;
 
 	private static int matrixSize = 0;
 
 	private static void addFinderPattern(int[][] matrix, int[] topLeftCornerIndex) {
-		int offsetXBeg = topLeftCornerIndex[0], offsetXEnd = offsetXBeg + finderPatternSize;
-		int offsetYBeg = topLeftCornerIndex[1], offsetYEnd = offsetYBeg + finderPatternSize;
+		int offsetXBeg = topLeftCornerIndex[0], offsetXEnd = offsetXBeg + FINDER_PATTERN_SIZE;
+		int offsetYBeg = topLeftCornerIndex[1], offsetYEnd = offsetYBeg + FINDER_PATTERN_SIZE;
 		int offsetXAvg = (int) Math.ceil(offsetXBeg + offsetXEnd) / 2, offsetYAvg = (int) Math.ceil((offsetYBeg + offsetYEnd) / 2);
 
 		for (int row = offsetXBeg - 1; row < offsetXEnd + 1; row++) {
@@ -124,7 +120,7 @@ public class MatrixConstruction {
 	 *            the 2D array to modify: where to add the patterns
 	 */
 	public static void addFinderPatterns(int[][] matrix) {
-		int offset = matrixSize - finderPatternSize;
+		int offset = matrixSize - FINDER_PATTERN_SIZE;
 		addFinderPattern(matrix, new int[] {0, 0});
 		addFinderPattern(matrix, new int[] {offset, 0});
 		addFinderPattern(matrix, new int[] {0, offset});
@@ -141,7 +137,7 @@ public class MatrixConstruction {
 	 */
 	public static void addAlignmentPatterns(int[][] matrix, int version) {
 		if (version < 2) return;
-		int offsetEnd = matrixSize - 4, offsetBeg = offsetEnd - alignmentPatternSize;
+		int offsetEnd = matrixSize - 4, offsetBeg = offsetEnd - ALIGNMENT_PATTERN_SIZE;
 		int midPos = (offsetBeg + offsetEnd) / 2;
 
 		for (int row = offsetBeg; row < offsetEnd; row++) {
@@ -166,13 +162,13 @@ public class MatrixConstruction {
 	 */
 	public static void addTimingPatterns(int[][] matrix) {
 		int bit = 0;
-		int offset = finderPatternSize + 1;
+		int offset = FINDER_PATTERN_SIZE + 1;
 
 		for (int index = 0; index < matrixSize; index++) {
 			if (index > offset - 1 && index < matrixSize - offset) {
 				int color = bit == 0 ? B : W;
-				matrix[index][timingPatternPosition] = color;
-				matrix[timingPatternPosition][index] = color;
+				matrix[index][TIMING_PATTERN_POSITION] = color;
+				matrix[TIMING_PATTERN_POSITION][index] = color;
 				bit = (bit + 1) % 2;
 			}
 		}
@@ -185,7 +181,7 @@ public class MatrixConstruction {
 	 *            the 2-dimensional array representing the QR code
 	 */
 	public static void addDarkModule(int[][] matrix) {
-		int offset = finderPatternSize + 1;
+		int offset = FINDER_PATTERN_SIZE + 1;
 		matrix[offset][matrixSize - offset] = B;
 	}
 
@@ -203,10 +199,10 @@ public class MatrixConstruction {
 		int index = 0;
 		for (int col = matrixSize - 1; col >= 0; col--) {
 			if (
-					col != timingPatternPosition &&
-					(col > (matrixSize - finderPatternSize - 1) || col < (finderPatternSize + 2))
+					col != TIMING_PATTERN_POSITION &&
+					(col > (matrixSize - FINDER_PATTERN_SIZE - 1) || col < (FINDER_PATTERN_SIZE + 2))
 			) {
-				matrix[finderPatternSize + 1][col] = maskInfo[index] ? B : W;
+				matrix[FINDER_PATTERN_SIZE + 1][col] = maskInfo[index] ? B : W;
 				index++;
 			}
 		}
@@ -214,10 +210,10 @@ public class MatrixConstruction {
 		index = 0;
 		for (int row = 0; row < matrixSize; row++) {
 			if (
-					row != timingPatternPosition &&
-					(row > (matrixSize - finderPatternSize - 2) || row < (finderPatternSize + 1))
+					row != TIMING_PATTERN_POSITION &&
+					(row > (matrixSize - FINDER_PATTERN_SIZE - 2) || row < (FINDER_PATTERN_SIZE + 1))
 			) {
-				matrix[row][finderPatternSize + 1] = maskInfo[index] ? B : W;
+				matrix[row][FINDER_PATTERN_SIZE + 1] = maskInfo[index] ? B : W;
 				index++;
 			}
 		}
@@ -274,16 +270,14 @@ public class MatrixConstruction {
 	 *            the data to add
 	 */
 	public static void addDataInformation(int[][] matrix, boolean[] data, int mask) {
-
+        boolean desc = true;
+        boolean bit, nextBit;
 		int index = 0;
-		boolean desc = true;
-		boolean bit;
-		boolean nextBit;
-		int turnIndex;
-		int rowIndex;
+		int turnIndex, rowIndex;
+		int dataLength = data.length;
 
 		for (int col = matrixSize - 1; col >= 0; col -= 2) {
-			if(col == timingPatternPosition) col -= 1;
+			if (col == TIMING_PATTERN_POSITION) col -= 1;
 
 			turnIndex = matrixSize -1;
 			desc = !desc;
@@ -291,29 +285,27 @@ public class MatrixConstruction {
 			for (int row = matrixSize - 1; row >= 0; row--) {
 				rowIndex = desc ? row - turnIndex : row;
 
-				if (index >= data.length || data.length == 0) {
+				if (index >= dataLength || dataLength == 0) {
 					bit = false;
 					nextBit = false;
 					index = 0;
 				} else {
-					bit = data.length > 0 ? data[index] : false;
-					nextBit = (data.length > 0 && index <= data.length - 2) ? data[index + 1] : false;
+					bit = dataLength > 0 && data[index];
+					nextBit = (dataLength > 0 && index <= dataLength - 2) && data[index + 1];
 				}
 
-				if (matrix[col][rowIndex] != 0) {
-					if (matrix[col - 1][rowIndex] != 0) {
-						if(desc) turnIndex -= 2;
-						continue;
-					}
-					matrix[col - 1][rowIndex] = maskColor(col - 1, rowIndex, bit, mask);
-					index += 1;
-					if (desc) turnIndex -= 2;
-					continue;
-				}
+                if (matrix[col][rowIndex] != 0) {
+                    if (matrix[col - 1][rowIndex] == 0) {
+                        matrix[col - 1][rowIndex] = maskColor(col - 1, rowIndex, bit, mask);
+                        index += 1;
+                    }
+                    if (desc) turnIndex -= 2;
+                    continue;
+                }
 
 				matrix[col][rowIndex] = maskColor(col, rowIndex, bit, mask);
 
-				if (index == data.length - 1) continue;
+				if (index == dataLength - 1) continue;
 
 				matrix[col - 1][rowIndex] = maskColor(col - 1, rowIndex, nextBit, mask);
 				index += 2;
