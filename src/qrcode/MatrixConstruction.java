@@ -14,12 +14,14 @@ public class MatrixConstruction {
      *
      * @param matrix
      *          The 2D array to modify: where to add the pattern
-     * @param topLeftCornerIndex
-     *          The (x, y) coordinates of the finder pattern's top left corner
+     * @param topLeftCornerPosX
+     *          The X coordinate of the finder pattern's top left corner
+     * @param topLeftCornerPosY
+     *          The Y coordinate of the finder pattern's top left corner
      */
-	private static void addFinderPattern(int[][] matrix, int[] topLeftCornerIndex) {
-		int offsetXBeg = topLeftCornerIndex[0], offsetXEnd = offsetXBeg + FINDER_PATTERN_SIZE;
-		int offsetYBeg = topLeftCornerIndex[1], offsetYEnd = offsetYBeg + FINDER_PATTERN_SIZE;
+	private static void addFinderPattern(int[][] matrix, int topLeftCornerPosX, int topLeftCornerPosY) {
+		int offsetXBeg = topLeftCornerPosX, offsetXEnd = offsetXBeg + FINDER_PATTERN_SIZE;
+		int offsetYBeg = topLeftCornerPosY, offsetYEnd = offsetYBeg + FINDER_PATTERN_SIZE;
 		int offsetXAvg = (int) Math.ceil(offsetXBeg + offsetXEnd) / 2, offsetYAvg = (int) Math.ceil((offsetYBeg + offsetYEnd) / 2);
 
 		// -1 and +1 so we can draw the white separator around the finder pattern
@@ -51,6 +53,33 @@ public class MatrixConstruction {
 			}
 		}
 	}
+
+    /**
+     *
+     * @param matrix
+     *          The 2D array to modify: where to place the alignment pattern
+     */
+	public static void addAlignmentPattern(int[][] matrix, int topLeftCornerPosX, int topLeftCornerPosY) {
+        // int offsetEnd = matrixSize - 4, offsetBeg = offsetEnd - ALIGNMENT_PATTERN_SIZE;
+        int offsetXBeg = topLeftCornerPosX, offsetXEnd = offsetXBeg + ALIGNMENT_PATTERN_SIZE;
+        int offsetYBeg = topLeftCornerPosY, offsetYEnd = offsetYBeg + ALIGNMENT_PATTERN_SIZE;
+        int midPos = (offsetXBeg + offsetXEnd) / 2;
+
+        for (int col = offsetXBeg; col < offsetXEnd; col++) {
+            for (int row = offsetYBeg; row < offsetYEnd; row++) {
+                if ((row == offsetYBeg || row == offsetYEnd - 1) || (col == offsetXBeg || col == offsetXEnd - 1)) {
+                    // draws the black square that contains the alignment pattern
+                    matrix[row][col] = B;
+                    matrix[col][row] = B;
+                } else if (col == midPos && col == row) {
+                    // draws the black module at the center
+                    matrix[col][col] = B;
+                } else {
+                    matrix[col][row] = W;
+                }
+            }
+        }
+    }
 
 	/**
 	 * Create the matrix of a QR code with the given data.
@@ -134,9 +163,9 @@ public class MatrixConstruction {
 	public static void addFinderPatterns(int[][] matrix) {
 	    // offset gets the index of the finder pattern's "starting point"
 		int offset = matrixSize - FINDER_PATTERN_SIZE;
-		addFinderPattern(matrix, new int[] {0, 0});
-		addFinderPattern(matrix, new int[] {offset, 0});
-		addFinderPattern(matrix, new int[] {0, offset});
+		addFinderPattern(matrix, 0, 0);
+		addFinderPattern(matrix, offset, 0);
+		addFinderPattern(matrix, 0, offset);
 	}
 
 	/**
@@ -150,23 +179,8 @@ public class MatrixConstruction {
 	 */
 	public static void addAlignmentPatterns(int[][] matrix, int version) {
 		if (version < 2) return;
-		int offsetEnd = matrixSize - 4, offsetBeg = offsetEnd - ALIGNMENT_PATTERN_SIZE;
-		int midPos = (offsetBeg + offsetEnd) / 2;
-
-		for (int col = offsetBeg; col < offsetEnd; col++) {
-			for (int row = offsetBeg; row < offsetEnd; row++) {
-				if ((row == offsetBeg || row == offsetEnd - 1) || (col == offsetBeg || col == offsetEnd - 1)) {
-				    // draws the black square that contains the alignment pattern
-					matrix[row][col] = B;
-					matrix[col][row] = B;
-				} else if (col == midPos && col == row) {
-				    // draws the 1x1 black square at the center
-					matrix[col][col] = B;
-				} else {
-					matrix[col][row] = W;
-				}
-			}
-		}
+        int baseAlignmentPatternPos = matrixSize - 4 - ALIGNMENT_PATTERN_SIZE;
+        addAlignmentPattern(matrix, baseAlignmentPatternPos, baseAlignmentPatternPos);
 	}
 
 	/**
@@ -365,8 +379,19 @@ public class MatrixConstruction {
 	 * @return the mask number that minimize the penalty
 	 */
 	public static int findBestMasking(int version, boolean[] data) {
-		// TODO BONUS
-		return 0;
+	    int bestMaskId = 0;
+	    int bestScore = 99999999;
+		int[] maskIds = new int[] {0, 1, 2, 3, 4, 5, 6, 7};
+
+		for (int maskId : maskIds) {
+		    int score = evaluate(renderQRCodeMatrix(version, data, maskId));
+		    if (score < bestScore) {
+		        bestScore = score;
+		        bestMaskId = maskId;
+            }
+        }
+
+		return bestMaskId;
 	}
 
 	/**
