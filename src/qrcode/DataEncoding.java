@@ -80,10 +80,11 @@ public final class DataEncoding {
 	public static int[] addInformations(int[] inputBytes) {
 		int offset = 2;
 		int length = inputBytes.length;
+
+		if (length < (offset + 1)) return new int[] {64, 0};
+
 		int outputLength = length + offset;
 		int[] outputBytes = new int[outputLength];
-
-		if (length < (offset + 1)) throw new Error(String.format("Input length must be greater than %s", offset + 1));
 
 		outputBytes[0] = (64 & 240) | ((length & 240) >> 4);
 		outputBytes[1] = ((length & 15) << 4) | ((inputBytes[0] & 240) >> 4);
