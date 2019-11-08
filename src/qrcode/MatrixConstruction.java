@@ -10,30 +10,42 @@ public class MatrixConstruction {
 
 	private static int matrixSize = 0;
 
+    /**
+     *
+     * @param matrix
+     *          The 2D array to modify: where to add the pattern
+     * @param topLeftCornerIndex
+     *          The (x, y) coordinates of the finder pattern's top left corner
+     */
 	private static void addFinderPattern(int[][] matrix, int[] topLeftCornerIndex) {
 		int offsetXBeg = topLeftCornerIndex[0], offsetXEnd = offsetXBeg + FINDER_PATTERN_SIZE;
 		int offsetYBeg = topLeftCornerIndex[1], offsetYEnd = offsetYBeg + FINDER_PATTERN_SIZE;
 		int offsetXAvg = (int) Math.ceil(offsetXBeg + offsetXEnd) / 2, offsetYAvg = (int) Math.ceil((offsetYBeg + offsetYEnd) / 2);
 
-		for (int row = offsetXBeg - 1; row < offsetXEnd + 1; row++) {
-			for (int col = offsetYBeg - 1; col < offsetYEnd + 1; col++) {
-				if (col >= 0 && row >= 0 && col < matrixSize && row < matrixSize) {
-					if ((col >= offsetYBeg && row >= offsetXBeg && col < offsetYEnd && row < offsetXEnd)) {
+		// -1 and +1 so we can draw the white separator around the finder pattern
+		for (int col = offsetXBeg - 1; col < offsetXEnd + 1; col++) {
+			for (int row = offsetYBeg - 1; row < offsetYEnd + 1; row++) {
+				if (row >= 0 && col >= 0 && row < matrixSize && col < matrixSize) {
+				    // check the col and row values so that we don't go out of bounds.
+					if ((row >= offsetYBeg && col >= offsetXBeg && row < offsetYEnd && col < offsetXEnd)) {
 						if (
-								(col == offsetYBeg || col == offsetYEnd - 1) ||
-								(row == offsetXBeg || row == offsetXEnd - 1)
+								(row == offsetYBeg || row == offsetYEnd - 1) ||
+								(col == offsetXBeg || col == offsetXEnd - 1)
 						) {
-							matrix[row][col] = B;
+						    // draws the black square that contains the finder pattern
+							matrix[col][row] = B;
 						} else if (
-								(col >  offsetYAvg - 2 && col < offsetYAvg + 2) &&
-								(row > offsetXAvg - 2 && row < offsetXAvg + 2)
+								(row >  offsetYAvg - 2 && row < offsetYAvg + 2) &&
+								(col > offsetXAvg - 2 && col < offsetXAvg + 2)
 						) {
-							matrix[row][col] = B;
+                            // draws the 3x3 black square at the center
+							matrix[col][row] = B;
 						} else {
-							matrix[row][col] = W;
+							matrix[col][row] = W;
 						}
 					} else {
-						matrix[row][col] = W;
+					    // draws the finder pattern's separator
+						matrix[col][row] = W;
 					}
 				}
 			}
@@ -120,6 +132,7 @@ public class MatrixConstruction {
 	 *            the 2D array to modify: where to add the patterns
 	 */
 	public static void addFinderPatterns(int[][] matrix) {
+	    // offset gets the index of the finder pattern's "starting point"
 		int offset = matrixSize - FINDER_PATTERN_SIZE;
 		addFinderPattern(matrix, new int[] {0, 0});
 		addFinderPattern(matrix, new int[] {offset, 0});
@@ -140,15 +153,17 @@ public class MatrixConstruction {
 		int offsetEnd = matrixSize - 4, offsetBeg = offsetEnd - ALIGNMENT_PATTERN_SIZE;
 		int midPos = (offsetBeg + offsetEnd) / 2;
 
-		for (int row = offsetBeg; row < offsetEnd; row++) {
-			for (int col = offsetBeg; col < offsetEnd; col++) {
-				if ((col == offsetBeg || col == offsetEnd - 1) || (row == offsetBeg || row == offsetEnd - 1)) {
-					matrix[col][row] = B;
+		for (int col = offsetBeg; col < offsetEnd; col++) {
+			for (int row = offsetBeg; row < offsetEnd; row++) {
+				if ((row == offsetBeg || row == offsetEnd - 1) || (col == offsetBeg || col == offsetEnd - 1)) {
+				    // draws the black square that contains the alignment pattern
 					matrix[row][col] = B;
-				} else if (row == midPos && row == col) {
-					matrix[row][row] = B;
+					matrix[col][row] = B;
+				} else if (col == midPos && col == row) {
+				    // draws the 1x1 black square at the center
+					matrix[col][col] = B;
 				} else {
-					matrix[row][col] = W;
+					matrix[col][row] = W;
 				}
 			}
 		}
@@ -162,13 +177,13 @@ public class MatrixConstruction {
 	 */
 	public static void addTimingPatterns(int[][] matrix) {
 		int bit = 0;
+		// we need an offset because of the finder pattern's separator of width 1
 		int offset = FINDER_PATTERN_SIZE + 1;
 
 		for (int index = 0; index < matrixSize; index++) {
 			if (index > offset - 1 && index < matrixSize - offset) {
-				int color = bit == 0 ? B : W;
-				matrix[index][TIMING_PATTERN_POSITION] = color;
-				matrix[TIMING_PATTERN_POSITION][index] = color;
+				matrix[index][TIMING_PATTERN_POSITION] = bit == 0 ? B : W;
+				matrix[TIMING_PATTERN_POSITION][index] = bit == 0 ? B : W;
 				bit = (bit + 1) % 2;
 			}
 		}
@@ -181,6 +196,7 @@ public class MatrixConstruction {
 	 *            the 2-dimensional array representing the QR code
 	 */
 	public static void addDarkModule(int[][] matrix) {
+        // we need an offset because of the finder pattern's separator of width 1
 		int offset = FINDER_PATTERN_SIZE + 1;
 		matrix[offset][matrixSize - offset] = B;
 	}
@@ -197,23 +213,23 @@ public class MatrixConstruction {
 		boolean[] maskInfo = QRCodeInfos.getFormatSequence(mask);
 
 		int index = 0;
-		for (int col = matrixSize - 1; col >= 0; col--) {
+		for (int row = matrixSize - 1; row >= 0; row--) {
 			if (
-					col != TIMING_PATTERN_POSITION &&
-					(col > (matrixSize - FINDER_PATTERN_SIZE - 1) || col < (FINDER_PATTERN_SIZE + 2))
+					row != TIMING_PATTERN_POSITION &&
+					(row > (matrixSize - FINDER_PATTERN_SIZE - 1) || row < (FINDER_PATTERN_SIZE + 2))
 			) {
-				matrix[FINDER_PATTERN_SIZE + 1][col] = maskInfo[index] ? B : W;
+				matrix[FINDER_PATTERN_SIZE + 1][row] = maskInfo[index] ? B : W;
 				index++;
 			}
 		}
 
 		index = 0;
-		for (int row = 0; row < matrixSize; row++) {
+		for (int col = 0; col < matrixSize; col++) {
 			if (
-					row != TIMING_PATTERN_POSITION &&
-					(row > (matrixSize - FINDER_PATTERN_SIZE - 2) || row < (FINDER_PATTERN_SIZE + 1))
+					col != TIMING_PATTERN_POSITION &&
+					(col > (matrixSize - FINDER_PATTERN_SIZE - 2) || col < (FINDER_PATTERN_SIZE + 1))
 			) {
-				matrix[row][FINDER_PATTERN_SIZE + 1] = maskInfo[index] ? B : W;
+				matrix[col][FINDER_PATTERN_SIZE + 1] = maskInfo[index] ? B : W;
 				index++;
 			}
 		}

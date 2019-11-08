@@ -10,6 +10,16 @@ public final class DataEncoding {
 	private static final Charset CHARSET = StandardCharsets.ISO_8859_1;
 	private static final int BYTE_LENGTH = 8;
 
+
+	/**
+	 *
+	 * @param input
+	 * 			The string to pad to the left
+	 * @param length
+	 * 			The final length of the padded string
+	 * @return
+	 * 			The left padded string with a size of the given length
+	 */
 	private static String padLeft(String input, int length) {
 		if (length == input.length()) return input;
 
