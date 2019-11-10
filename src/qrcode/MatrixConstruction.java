@@ -1,5 +1,6 @@
 package qrcode;
 import java.lang.Math;
+import java.util.Arrays;
 
 public class MatrixConstruction {
 
@@ -391,7 +392,6 @@ public class MatrixConstruction {
 		        bestMaskId = maskId;
             }
         }
-
 		return bestMaskId;
 	}
 
@@ -409,43 +409,44 @@ public class MatrixConstruction {
 		int lastRowModule = B;
 		int countForCol = 0;
 		int countForRow = 0;
-		int blackModules = 0;
-		int precMult;
+		int prevMult;
 		int nextMult;
 		int blackRatio;
+		double blackModules = 0.0;
 		boolean whiteSquare;
 		boolean blackSquare;
 		int[] caughtSequence = new int[11];
-		int[] firstSequence = {W, W, W, W, B, W, B, B, B, W, W};
-		int[] secondSequence = {B, W, B, B, B, W, B, W, W, W ,W};
+		int[] penaltySequence1 = {W, W, W, W, B, W, B, B, B, W, B};
+		int[] penaltySequence2 = {B, W, B, B, B, W, B, W, W, W ,W};
 
 		for (int col = 0; col < matrixSize; col++) {
 			for (int row = 0; row < matrixSize; row++) {
-				if(matrix[row][col] == B) blackModules += 1;
+				if(matrix[col][row] == B) blackModules += 1;
 
 				//Checks rows 5rep
 				if (matrix[col][row] == lastRowModule) {
 					countForRow += 1;
 				} else {
-					lastRowModule = lastRowModule == W ? B : W;
+					lastRowModule = matrix[col][row];
 					countForRow = 1;
 				}
 
-				//Checks columns 5rep (inverted col row)
-				if (matrix[row][col] == lastColModule) {
-					countForCol += 1;
-				} else {
-					lastColModule = lastColModule == W ? B : W;
-					countForCol = 1;
-				}
 
-				if (countForRow == 5 || countForCol == 5) penalty += 3;
-				if (countForRow > 5 || countForCol > 5) penalty += 1;
+				//check 5reps
+				if (countForRow == 5){
+					penalty += 3;
+				} else if (countForRow > 5) penalty += 1;
+
+				if (countForCol == 5){
+					penalty += 3;
+				} else if (countForCol > 5) penalty += 1;
 
 				//check 2x2 reps
 				if (col > 0 && row > 0) {
-					whiteSquare = matrix[col][row] == W && matrix[col - 1][row] == W && matrix[col][row - 1] == W && matrix[col - 1][row - 1] == W;
-					blackSquare = matrix[col][row] == B && matrix[col - 1][row] == B && matrix[col][row - 1] == B && matrix[col - 1][row - 1] == B;
+					whiteSquare = matrix[col][row] == W && matrix[col - 1][row] == W && matrix[col][row - 1] == W &&
+							matrix[col - 1][row - 1] == W;
+					blackSquare = matrix[col][row] == B && matrix[col - 1][row] == B && matrix[col][row - 1] == B &&
+							matrix[col - 1][row - 1] == B;
 
 					if (whiteSquare || blackSquare) penalty += 3;
 				}
@@ -453,19 +454,34 @@ public class MatrixConstruction {
 				//check sequences
 				if(row < matrixSize-10){
 					for (int i = 0; i < 11; i++) caughtSequence[i] = matrix[col][row + i];
-					if (caughtSequence == firstSequence || caughtSequence == secondSequence) penalty += 40;
+					if (Arrays.equals(caughtSequence, penaltySequence1) || Arrays.equals(caughtSequence, penaltySequence2)) penalty += 40;
 					for (int i = 0; i < 11; i++) caughtSequence[i] = matrix[row + i][col];
-					if (caughtSequence == firstSequence || caughtSequence == secondSequence) penalty += 40;
+					if (Arrays.equals(caughtSequence, penaltySequence1) || Arrays.equals(caughtSequence, penaltySequence2)) penalty += 40;
 				}
 			}
 		}
 
-		//last penalty formula
-		blackRatio = (blackModules / (matrixSize * matrixSize)) * 100;
-		precMult = java.lang.Math.abs((blackRatio - (blackRatio % 5)) - 50);
-		nextMult = java.lang.Math.abs((blackRatio + 5) - (blackRatio % 5)) - 50;
+		for(int row = 0; row < matrixSize; row++){
+			for(int col = 0; col < matrixSize; col++){
+				//Checks columns 5rep (inverted col row)
+				if (matrix[col][row] == lastColModule) {
+					countForCol += 1;
+				} else {
+					lastColModule = matrix[col][row];
+					countForCol = 1;
+				}
+				if (countForCol == 5){
+					penalty += 3;
+				} else if (countForCol > 5) penalty += 1;
+			}
+		}
 
-		penalty += precMult <= nextMult ? precMult*2 : nextMult*2;
+		//last penalty formula
+		blackRatio = (int) Math.round((blackModules / (matrixSize * matrixSize)) * 100);
+		prevMult = Math.abs((blackRatio - (blackRatio % 5)) - 50);
+		nextMult = Math.abs(((blackRatio + 5) - (blackRatio % 5)) - 50);
+
+		penalty += prevMult <= nextMult ? prevMult * 2 : nextMult * 2;
 		return penalty;
 	}
 
