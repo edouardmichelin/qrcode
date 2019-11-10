@@ -1,4 +1,5 @@
 package qrcode;
+import java.lang.Math;
 
 public class MatrixConstruction {
 
@@ -380,13 +381,13 @@ public class MatrixConstruction {
 	 */
 	public static int findBestMasking(int version, boolean[] data) {
 	    int bestMaskId = 0;
-	    int bestScore = 99999999;
+	    int lowestPenalty = 99999999;
 		int[] maskIds = new int[] {0, 1, 2, 3, 4, 5, 6, 7};
 
 		for (int maskId : maskIds) {
-		    int score = evaluate(renderQRCodeMatrix(version, data, maskId));
-		    if (score < bestScore) {
-		        bestScore = score;
+		    int penalty = evaluate(renderQRCodeMatrix(version, data, maskId));
+		    if (penalty < lowestPenalty) {
+				lowestPenalty = penalty;
 		        bestMaskId = maskId;
             }
         }
@@ -402,9 +403,70 @@ public class MatrixConstruction {
 	 * @return the penalty score obtained by the QR code, lower the better
 	 */
 	public static int evaluate(int[][] matrix) {
-		//TODO BONUS
 
-		return 0;
+		int penalty = 0;
+		int lastColModule = B;
+		int lastRowModule = B;
+		int countForCol = 0;
+		int countForRow = 0;
+		int blackModules = 0;
+		int precMult;
+		int nextMult;
+		int blackRatio;
+		boolean whiteSquare;
+		boolean blackSquare;
+		int[] caughtSequence = new int[11];
+		int[] firstSequence = {W, W, W, W, B, W, B, B, B, W, W};
+		int[] secondSequence = {B, W, B, B, B, W, B, W, W, W ,W};
+
+		for (int col = 0; col < matrixSize; col++) {
+			for (int row = 0; row < matrixSize; row++) {
+				if(matrix[row][col] == B) blackModules += 1;
+
+				//Checks rows 5rep
+				if (matrix[col][row] == lastRowModule) {
+					countForRow += 1;
+				} else {
+					lastRowModule = lastRowModule == W ? B : W;
+					countForRow = 1;
+				}
+
+				//Checks columns 5rep (inverted col row)
+				if (matrix[row][col] == lastColModule) {
+					countForCol += 1;
+				} else {
+					lastColModule = lastColModule == W ? B : W;
+					countForCol = 1;
+				}
+
+				if (countForRow == 5 || countForCol == 5) penalty += 3;
+				if (countForRow > 5 || countForCol > 5) penalty += 1;
+
+				//check 2x2 reps
+				if (col > 0 && row > 0) {
+					whiteSquare = matrix[col][row] == W && matrix[col - 1][row] == W && matrix[col][row - 1] == W && matrix[col - 1][row - 1] == W;
+					blackSquare = matrix[col][row] == B && matrix[col - 1][row] == B && matrix[col][row - 1] == B && matrix[col - 1][row - 1] == B;
+
+					if (whiteSquare || blackSquare) penalty += 3;
+				}
+
+				//check sequences
+				if(row < matrixSize-10){
+					for (int i = 0; i < 11; i++) caughtSequence[i] = matrix[col][row + i];
+					if (caughtSequence == firstSequence || caughtSequence == secondSequence) penalty += 40;
+					for (int i = 0; i < 11; i++) caughtSequence[i] = matrix[row + i][col];
+					if (caughtSequence == firstSequence || caughtSequence == secondSequence) penalty += 40;
+				}
+			}
+		}
+
+		//last penalty formula
+		blackRatio = (blackModules / (matrixSize * matrixSize)) * 100;
+		precMult = java.lang.Math.abs((blackRatio - (blackRatio % 5)) - 50);
+		nextMult = java.lang.Math.abs((blackRatio + 5) - (blackRatio % 5)) - 50;
+
+		penalty += precMult <= nextMult ? precMult*2 : nextMult*2;
+		return penalty;
 	}
 
 }
