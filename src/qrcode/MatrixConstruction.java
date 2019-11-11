@@ -81,15 +81,6 @@ public class MatrixConstruction {
         }
     }
 
-    public static int[] getAlignmentPatternsPositions(int version) {
-	    // https://stackoverflow.com/questions/13238704/calculating-the-position-of-qr-code-alignment-patterns
-        int size = Math.floorDiv(version, 7) + 2;
-        if (version == 40) return new int[] {6, 30, 58, 86, 114, 142, 170};
-        if (version == 4) return new int[] {6, 26};
-        if (version == 20) return new int[] {6, 34, 62, 90};
-        return new int[size];
-    }
-
 	/**
 	 * Create the matrix of a QR code with the given data.
 	 *
@@ -188,15 +179,17 @@ public class MatrixConstruction {
 	 */
 	public static void addAlignmentPatterns(int[][] matrix, int version) {
 		if (version < 2) return;
-        // int baseAlignmentPatternPos = matrixSize - 4 - ALIGNMENT_PATTERN_SIZE;
-        int[] alignmentPatternsPositions = getAlignmentPatternsPositions(version);
+		int posOne = 0, posTwo = 0;
+
+        int[] alignmentPatternsPositions = Extensions.getAlignmentPatternsPositions(version);
         for (int i = 0; i < alignmentPatternsPositions.length; i++) {
             int patternPosition = alignmentPatternsPositions[i];
             for (int j = 0; j < alignmentPatternsPositions.length; j++) {
-                if (matrix[patternPosition][alignmentPatternsPositions[j]] == 0 &&
-                        matrix[alignmentPatternsPositions[j]][patternPosition] == 0) {
-                    addAlignmentPattern(matrix, patternPosition - 2, alignmentPatternsPositions[j] - 2);
-                    addAlignmentPattern(matrix, alignmentPatternsPositions[j] - 2, patternPosition - 2);
+                posOne = alignmentPatternsPositions[j];
+                posTwo = patternPosition;
+                if (matrix[posOne][posTwo] == 0 && matrix[posTwo][posOne] == 0) {
+                    addAlignmentPattern(matrix, posOne - 2, posTwo - 2);
+                    addAlignmentPattern(matrix, posTwo - 2, posOne - 2);
                 }
             }
         }
