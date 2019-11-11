@@ -62,25 +62,32 @@ public class MatrixConstruction {
      *          The 2D array to modify: where to place the alignment pattern
      */
 	public static void addAlignmentPattern(int[][] matrix, int topLeftCornerPosX, int topLeftCornerPosY) {
-        // int offsetEnd = matrixSize - 4, offsetBeg = offsetEnd - ALIGNMENT_PATTERN_SIZE;
         int offsetXBeg = topLeftCornerPosX, offsetXEnd = offsetXBeg + ALIGNMENT_PATTERN_SIZE;
         int offsetYBeg = topLeftCornerPosY, offsetYEnd = offsetYBeg + ALIGNMENT_PATTERN_SIZE;
-        int midPos = (offsetXBeg + offsetXEnd) / 2;
+        int midPosX = (offsetXBeg + offsetXEnd) / 2, midPosY = (offsetYBeg + offsetYEnd) / 2;
 
         for (int col = offsetXBeg; col < offsetXEnd; col++) {
             for (int row = offsetYBeg; row < offsetYEnd; row++) {
                 if ((row == offsetYBeg || row == offsetYEnd - 1) || (col == offsetXBeg || col == offsetXEnd - 1)) {
                     // draws the black square that contains the alignment pattern
-                    matrix[row][col] = B;
                     matrix[col][row] = B;
-                } else if (col == midPos && col == row) {
+                } else if (col == midPosX && row == midPosY) {
                     // draws the black module at the center
-                    matrix[col][col] = B;
+                    matrix[col][row] = B;
                 } else {
                     matrix[col][row] = W;
                 }
             }
         }
+    }
+
+    public static int[] getAlignmentPatternsPositions(int version) {
+	    // https://stackoverflow.com/questions/13238704/calculating-the-position-of-qr-code-alignment-patterns
+        int size = Math.floorDiv(version, 7) + 2;
+        if (version == 40) return new int[] {6, 30, 58, 86, 114, 142, 170};
+        if (version == 4) return new int[] {6, 26};
+        if (version == 20) return new int[] {6, 34, 62, 90};
+        return new int[size];
     }
 
 	/**
@@ -104,7 +111,7 @@ public class MatrixConstruction {
 		/*
 		 * PART 3
 		 */
-		addDataInformation(matrix, data, mask);
+        // addDataInformation(matrix, data, mask);
 
 		return matrix;
 	}
@@ -134,8 +141,8 @@ public class MatrixConstruction {
 		int[][] matrix = initializeMatrix(version);
 
 		addFinderPatterns(matrix);
+        addAlignmentPatterns(matrix, version);
 		addTimingPatterns(matrix);
-		addAlignmentPatterns(matrix, version);
 		addDarkModule(matrix);
 		addFormatInformation(matrix, mask);
 
@@ -181,8 +188,18 @@ public class MatrixConstruction {
 	 */
 	public static void addAlignmentPatterns(int[][] matrix, int version) {
 		if (version < 2) return;
-        int baseAlignmentPatternPos = matrixSize - 4 - ALIGNMENT_PATTERN_SIZE;
-        addAlignmentPattern(matrix, baseAlignmentPatternPos, baseAlignmentPatternPos);
+        // int baseAlignmentPatternPos = matrixSize - 4 - ALIGNMENT_PATTERN_SIZE;
+        int[] alignmentPatternsPositions = getAlignmentPatternsPositions(version);
+        for (int i = 0; i < alignmentPatternsPositions.length; i++) {
+            int patternPosition = alignmentPatternsPositions[i];
+            for (int j = 0; j < alignmentPatternsPositions.length; j++) {
+                if (matrix[patternPosition][alignmentPatternsPositions[j]] == 0 &&
+                        matrix[alignmentPatternsPositions[j]][patternPosition] == 0) {
+                    addAlignmentPattern(matrix, patternPosition - 2, alignmentPatternsPositions[j] - 2);
+                    addAlignmentPattern(matrix, alignmentPatternsPositions[j] - 2, patternPosition - 2);
+                }
+            }
+        }
 	}
 
 	/**
