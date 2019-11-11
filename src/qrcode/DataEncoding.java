@@ -60,7 +60,7 @@ public final class DataEncoding {
 	 */
 	public static int[] encodeString(String input, int maxLength) {
 		byte[] encodedString = input.getBytes(CHARSET);
-		int fixedInputLength = encodedString.length > maxLength ? maxLength : encodedString.length;
+		int fixedInputLength = Math.min(encodedString.length, maxLength);
 		int[] sequence = new int[fixedInputLength];
 
 		for (int index = 0; index < fixedInputLength; index++ ) {

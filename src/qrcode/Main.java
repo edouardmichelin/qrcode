@@ -19,7 +19,7 @@ public class Main {
 		/*
 		 * image
 		 */
-		int[][] qrCode = MatrixConstruction.renderQRCodeMatrix(VERSION, encodedData,MASK);
+		int[][] qrCode = MatrixConstruction.renderQRCodeMatrix(VERSION, encodedData, MASK);
 
 		/*
 		 * Visualization

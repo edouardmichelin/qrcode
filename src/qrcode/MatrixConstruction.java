@@ -1,5 +1,4 @@
 package qrcode;
-import java.lang.Math;
 
 import java.lang.Math;
 
@@ -25,7 +24,8 @@ public class MatrixConstruction {
 	private static void addFinderPattern(int[][] matrix, int topLeftCornerPosX, int topLeftCornerPosY) {
 		int offsetXBeg = topLeftCornerPosX, offsetXEnd = offsetXBeg + FINDER_PATTERN_SIZE;
 		int offsetYBeg = topLeftCornerPosY, offsetYEnd = offsetYBeg + FINDER_PATTERN_SIZE;
-		int offsetXAvg = (int) Math.ceil(offsetXBeg + offsetXEnd) / 2, offsetYAvg = (int) Math.ceil((offsetYBeg + offsetYEnd) / 2);
+		int offsetXAvg = (int) Math.ceil(offsetXBeg + offsetXEnd) / 2;
+		int offsetYAvg = (int) Math.ceil((offsetYBeg + offsetYEnd) / 2);
 
 		// -1 and +1 so we can draw the white separator around the finder pattern
 		for (int col = offsetXBeg - 1; col < offsetXEnd + 1; col++) {
@@ -62,7 +62,7 @@ public class MatrixConstruction {
      * @param matrix
      *          The 2D array to modify: where to place the alignment pattern
      */
-	public static void addAlignmentPattern(int[][] matrix, int topLeftCornerPosX, int topLeftCornerPosY) {
+	private static void addAlignmentPattern(int[][] matrix, int topLeftCornerPosX, int topLeftCornerPosY) {
         int offsetXBeg = topLeftCornerPosX, offsetXEnd = offsetXBeg + ALIGNMENT_PATTERN_SIZE;
         int offsetYBeg = topLeftCornerPosY, offsetYEnd = offsetYBeg + ALIGNMENT_PATTERN_SIZE;
         int midPosX = (offsetXBeg + offsetXEnd) / 2, midPosY = (offsetYBeg + offsetYEnd) / 2;
@@ -103,7 +103,7 @@ public class MatrixConstruction {
 		/*
 		 * PART 3
 		 */
-        // addDataInformation(matrix, data, mask);
+        addDataInformation(matrix, data, mask);
 
 		return matrix;
 	}
