@@ -1,5 +1,7 @@
 package qrcode;
 
+import java.lang.Math;
+
 public class MatrixConstruction {
 
 	private static final int W = 0xFF_FF_FF_FF;
@@ -365,7 +367,6 @@ public class MatrixConstruction {
 	 * @return The matrix of the QR code
 	 */
 	public static int[][] renderQRCodeMatrix(int version, boolean[] data) {
-
 		int mask = findBestMasking(version, data);
 
 		return renderQRCodeMatrix(version, data, mask);
@@ -379,14 +380,18 @@ public class MatrixConstruction {
 	 * @return the mask number that minimize the penalty
 	 */
 	public static int findBestMasking(int version, boolean[] data) {
-	    int bestMaskId = 0;
-	    int bestScore = 99999999;
 		int[] maskIds = new int[] {0, 1, 2, 3, 4, 5, 6, 7};
+        int firstMaskId = maskIds[0];
+
+        int bestMaskId = firstMaskId;
+        int lowestPenalty = evaluate(renderQRCodeMatrix(version, data, firstMaskId));
 
 		for (int maskId : maskIds) {
-		    int score = evaluate(renderQRCodeMatrix(version, data, maskId));
-		    if (score < bestScore) {
-		        bestScore = score;
+		    if (maskId == firstMaskId) continue;
+
+		    int penalty = evaluate(renderQRCodeMatrix(version, data, maskId));
+		    if (penalty < lowestPenalty) {
+				lowestPenalty = penalty;
 		        bestMaskId = maskId;
             }
         }
@@ -402,9 +407,90 @@ public class MatrixConstruction {
 	 * @return the penalty score obtained by the QR code, lower the better
 	 */
 	public static int evaluate(int[][] matrix) {
-		//TODO BONUS
+        int prevMultiple, nextMultiple;
+        int blackRatio;
+		int penalty = 0;
+        int countForCol = 0, countForRow = 0;
+		int lastColModule = B, lastRowModule = B;
+        double blackModules = 0d;
+		boolean isWhiteSquare, isBlackSquare;
+		int[] penaltySequence1 = {W, W, W, W, B, W, B, B, B, W, B};
+		int[] penaltySequence2 = {B, W, B, B, B, W, B, W, W, W , W};
+        boolean matchPenSeq1 = true, matchPenSeq2 = true;
 
-		return 0;
+		for (int col = 0; col < matrixSize; col++) {
+			for (int row = 0; row < matrixSize; row++) {
+				if (matrix[col][row] == B)
+				    blackModules += 1;
+
+				// Checks rows 5 reps
+				if (matrix[col][row] == lastRowModule) {
+					countForRow += 1;
+				} else {
+					lastRowModule = matrix[col][row];
+					countForRow = 1;
+				}
+                // Checks columns 5 reps (inverted col row)
+                if (matrix[row][col] == lastColModule)
+                    countForCol += 1;
+                else {
+                    lastColModule = matrix[col][row];
+                    countForCol = 1;
+                }
+
+				if (countForRow == 5)
+					penalty += 3;
+				else if (countForRow > 5)
+				    penalty += 1;
+
+                if (countForCol == 5)
+                    penalty += 3;
+                else if (countForCol > 5)
+                    penalty += 1;
+
+				// check 2x2 reps
+				if (col > 0 && row > 0) {
+					isWhiteSquare =
+                            matrix[col][row] == W &&
+                            matrix[col - 1][row] == W &&
+                            matrix[col][row - 1] == W &&
+							matrix[col - 1][row - 1] == W;
+
+					isBlackSquare =
+                            matrix[col][row] == B &&
+                            matrix[col - 1][row] == B &&
+                            matrix[col][row - 1] == B &&
+							matrix[col - 1][row - 1] == B;
+
+					if (isWhiteSquare || isBlackSquare)
+					    penalty += 3;
+				}
+
+				// check sequences
+				if (row < matrixSize - 10) {
+					for (int i = 0; i < 11; i++) {
+                        int moduleRow = matrix[col][row + i];
+                        int moduleCol = matrix[row + i][col];
+                        if (penaltySequence1[i] != moduleRow)
+                            matchPenSeq1 = false;
+                        if (penaltySequence2[i] != moduleCol)
+                            matchPenSeq2 = false;
+                    }
+
+                    if (matchPenSeq1) penalty += 40;
+                    if (matchPenSeq2) penalty += 40;
+				}
+			}
+		}
+
+		// last penalty formula
+		blackRatio = (int) Math.round((blackModules / (matrixSize * matrixSize)) * 100);
+		prevMultiple = Math.abs((blackRatio - (blackRatio % 5)) - 50);
+		nextMultiple = Math.abs(((blackRatio + 5) - (blackRatio % 5)) - 50);
+
+		penalty += prevMultiple <= nextMultiple ? prevMultiple * 2 : nextMultiple * 2;
+
+		return penalty;
 	}
 
 }
