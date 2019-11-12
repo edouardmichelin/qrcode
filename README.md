@@ -57,7 +57,7 @@ Cette méthode permet de trouver le meilleur masque et reprend les deux paramèt
 - La version de la matrice
 - Les données du message préalablement encodé et sous sa forme de booléens.
 
-Elle va lancer une boucle qui va générer la matrice du QR code pour chacun des masque et déterminer quel est le meilleur masque selon un système de point de pénalité.
+Elle va lancer une boucle qui va générer la matrice du QR code pour chacun des masques et déterminer quel est le meilleur masque selon un système de point de pénalité.
 
 Les points de pénalités sont retournés par une méthode d'évaluation qui sera appelée sur chaque matrice pour chaque masque afin de les évaluer.
 
@@ -70,10 +70,10 @@ Une fois le score le plus bas trouvé, la méthode retourne l'id du meilleur mas
 Ceci est la méthode d'évaluation appelée dans `int findBestMasking(int version, boolean[] data)` et prend comme paramètre
 - La matrice finale du QR code
 
-Cette matrice sera ensuite parcourue par une double boucle dans le but de rechercher des patterns pour ajouter des points de pénalités selon 4 règles:
+Cette matrice sera ensuite parcourue par une double boucle dans le but de rechercher des patterns pour ajouter des points de pénalités selon 4 règles :
 - Sur chaque lignes et colonnes de la matrice, 5 modules de même couleurs consécutifs ajoutent 3 points de pénalités et 1 points de pénalité supplémentaire pour chaque module de même couleur après les 5 initiaux.
-- Tous les carrés 2x2 de même couleurs trouvés ajouteront 3 points de pénalité. Ces carrés peuvent se superposer. <i>Ex: un carré de 3x3 modules de même couleur compte 12 points de pénalités</i>.
-- sur chaque ligne et colonne deux séquences seront recherchées. La première étant `W, W, W, W, B, W, B, B, B, W, B` et la deuxième `B, W, B, B, B, W, B, W, W, W , W`. W = blanc et B = noir. Pour chaque séquence trouvée dans la matrice, un ajout de 40 points de pénalité est fait, le but étant de trouver un pattern similaire aux "finder patterns".
+- Tous les carrés 2x2 de mêmes couleurs trouvés ajouteront 3 points de pénalité. Ces carrés peuvent se superposer. <i>Ex: un carré de 3x3 modules de même couleur compte 12 points de pénalités</i>.
+- Sur chaque ligne et colonne deux séquences seront recherchées. La première étant `W, W, W, W, B, W, B, B, B, W, B` et la deuxième `B, W, B, B, B, W, B, W, W, W , W`. W = blanc et B = noir. Pour chaque séquence trouvée dans la matrice, un ajout de 40 points de pénalité est fait, le but étant de trouver un pattern similaire aux "finder patterns".
 - Un calcul sera fait pour pénaliser un écart trop grand entre le nombre de modules blancs et le nombre de modules noirs. La formule appliquée fait le pourcentage de modules noirs qu'il y a dans la matrice, ensuite trouve le multiple de 5 précédent puis celui d'après (<i>Ex: 34% donnera 30 et 35, 35% donnera 35 et 40</i>). On soustrait ensuite 50 à ces deux valeurs et on retient la valeur absolue de chacune. La plus petite valeur entre les deux est ensuite multipliée par 2 et ajoutée aux points de pénalités.
 
 Le total des points de pénalités est alors retourné. Un score bas indique une matrice bien diversifiée au niveau des modules, la rendant donc préférable car plus lisible par un scanner.
