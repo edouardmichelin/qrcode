@@ -14,7 +14,7 @@ Ce projet a été donné dans le cadre du cours d'introduction à la programmati
 
 ## Objectif
 
-L'bjectif premier de ce projet est d'être capable d'appliquer les premiers principes de programmation enseignés lors du cours dans le but de pouvoir recréer, en partie, l'ecriture d'un QR Code (V1 -> V4).
+L'objectif premier de ce projet est d'être capable d'appliquer les premiers principes de programmation enseignés lors du cours dans le but de pouvoir recréer, en partie, l'ecriture d'un QR Code (V1 -> V4).
 
 ## Principes utilisés lors du mini projet
 
