@@ -2,7 +2,7 @@ package qrcode;
 
 public class Main {
 
-	public static final String INPUT = "Coucou les amis !";
+	public static final String INPUT = "I love java. Java is a great language!";
 	/*
 	 * Parameters
 	 */

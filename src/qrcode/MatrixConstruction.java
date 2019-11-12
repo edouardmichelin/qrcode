@@ -180,7 +180,7 @@ public class MatrixConstruction {
 	 */
 	public static void addAlignmentPatterns(int[][] matrix, int version) {
 		if (version < 2) return;
-		int posOne = 0, posTwo = 0;
+		int posOne, posTwo;
 
         int[] alignmentPatternsPositions = Extensions.getAlignmentPatternsPositions(version);
         for (int i = 0; i < alignmentPatternsPositions.length; i++) {
@@ -240,6 +240,7 @@ public class MatrixConstruction {
 		boolean[] maskInfo = QRCodeInfos.getFormatSequence(mask);
 
 		int index = 0;
+		// vertical format sequence
 		for (int row = matrixSize - 1; row >= 0; row--) {
 			if (
 					row != TIMING_PATTERN_POSITION &&
@@ -251,6 +252,7 @@ public class MatrixConstruction {
 		}
 
 		index = 0;
+		// horizontal format sequence
 		for (int col = 0; col < matrixSize; col++) {
 			if (
 					col != TIMING_PATTERN_POSITION &&
@@ -281,6 +283,7 @@ public class MatrixConstruction {
 	 */
 	public static int maskColor(int col, int row, boolean dataBit, int masking) {
 		boolean isMasked;
+
 		switch (masking) {
 			case 0: isMasked = (col + row) % 2 == 0;
 				break;
@@ -323,9 +326,13 @@ public class MatrixConstruction {
 			if (col == TIMING_PATTERN_POSITION) col -= 1;
 
 			turnIndex = matrixSize -1;
+
+			// Make the switch from ascendant to descendant each time a run is done
 			desc = !desc;
 
 			for (int row = matrixSize - 1; row >= 0; row--) {
+
+				// Use the right row index depending on the value of desc
 				rowIndex = desc ? row - turnIndex : row;
 
 				if (index >= dataLength || dataLength == 0) {
@@ -337,6 +344,7 @@ public class MatrixConstruction {
 					nextBit = (dataLength > 0 && index <= dataLength - 2) && data[index + 1];
 				}
 
+				// If the module is already assigned a value, the current bit is placed right on the left (if the place is free)
                 if (matrix[col][rowIndex] != 0) {
                     if (matrix[col - 1][rowIndex] == 0) {
                         matrix[col - 1][rowIndex] = maskColor(col - 1, rowIndex, bit, mask);
@@ -458,7 +466,7 @@ public class MatrixConstruction {
                 else if (countForCol > 5)
                     penalty += 1;
 
-                if(row == matrixSize - 1){
+                if (row == matrixSize - 1) {
                     countForCol = 0;
                     countForRow = 0;
                 }
