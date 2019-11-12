@@ -63,7 +63,7 @@ Les points de pénalités sont retournés par une méthode d'évaluation qui ser
 
 Un score en fonction de ses points de pénalité est gardé en mémoire et comparé avec le score de la dernière matrice générée, si le score est plus bas, on garde ce score ainsi que l'id du masque correspondant à la matrice de ce résultat.
 
-Une fois le score le plus bas trouvé, la méthode retourne
+Une fois le score le plus bas trouvé, la méthode retourne l'id du meilleur masque, soit celui qui a généré le score le plus bas.
 
 ##### `int evaluate(int[][] matrix)`
 
