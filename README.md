@@ -4,7 +4,7 @@
 
 ---
 
-![alt text](https://chart.googleapis.com/chart?cht=qr&chl=I%20love%20java!&chs=180x180&choe=UTF-8&chld=L|2)
+![QR Code - I love java](https://chart.googleapis.com/chart?cht=qr&chl=I%20love%20java!&chs=180x180&choe=UTF-8&chld=L|2)
 
 ---
 
@@ -42,7 +42,7 @@ La partie 3 concerne le remplissage de notre matrice par les données encodées 
 
 Nous avons travaillé sur deux des bonus proposés dans le tutoriel.
 
-#### Bonus 1 - Choix automatique du meilleur mask pour une version donnée
+### Bonus 1 - Choix automatique du meilleur mask pour une version donnée
 
 La méthode `int[][] renderQRCodeMatrix(int version, boolean[] data)` permet par polymorphisme de créer notre matrice sans spécifier de version de masque en paramètre.
 
@@ -78,7 +78,11 @@ Cette matrice sera ensuite parcourue par une double boucle dans le but de recher
 
 Le total des points de pénalités est alors retourné. Un score bas indique une matrice bien diversifiée au niveau des modules, la rendant donc préférable car plus lisible par un scanner.
 
-#### Bonus 2 - Affichage des <i>alignement patterns</i> pour une version donnée (≤ 40)
+##### Comment tester cette partie du bonus ?
+
+Il suffit simplement d'appeler la méthode `int[][] renderQRCodeMatrix(int version, boolean[] data)` décrite plus haut.
+
+### Bonus 2 - Affichage des <i>alignement patterns</i> pour une version donnée (≤ 40)
 
 Un fichier `Extensions.java` a été ajouté dans le projet.
 
